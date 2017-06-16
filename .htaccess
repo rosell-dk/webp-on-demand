@@ -24,7 +24,6 @@
   # RewriteCond %{HTTP_ACCEPT} image/webp
   # RewriteCond %{DOCUMENT_ROOT}/web-cache/$1.$2.webp !-f
   # RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert.php?file=$1.$2&quality=80&destination-folder=webp-cache/ [T=image/webp,E=accept:1]
-  # RewriteCond %{HTTP_ACCEPT} image/webp
   # RewriteCond %{DOCUMENT_ROOT}/webp-cache/$1.$2.webp -f
   # RewriteRule ^(.*)\.(jpe?g|png)$ /webp-cache/$1.$2.webp [T=image/webp,E=accept:1]
 
