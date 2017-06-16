@@ -54,7 +54,7 @@ The image converter is using the [imagewebp()](http://php.net/manual/en/function
 
 ## Related
 * [My original post presenting the solution](https://www.bitwise-it.dk/blog/webp-on-demand)
-* I'm working on a Wordpress adaptation of the solution.
+* [Wordpress adaptation of the solution](https://github.com/rosell-dk/webp-express) - It's on github, but I have submitted it to Wordpress. Once it is hopefully approved, you will be able to install it directly from wordpress. It is called "WebP Express"
 
 ## Detailed explanation of how it works
 
