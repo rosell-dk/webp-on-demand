@@ -72,7 +72,7 @@ RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert.php?file=$1.$2&quality=80
 
 The first line is a condition which makes sure that the following rule only applies when the client has send a HTTP_ACCEPT header containing "image/webp". In other words: The next rule must only activate when the browser accepts WebP images.
 
-The second line rewrites any request that ends with ".jpg", ".jpeg" or ".png". The target is same as source, but with ".webp" appended to it. Also, type is set to "image/webp"
+The second line rewrites any request that ends with ".jpg", ".jpeg" or ".png". The target is same as source, but with ".webp" appended to it. Also, MIME type of the response is set to "image/webp". The E flag part sets the environment variable "accept" to 1. This is used further down in the .htaccess to conditionally append a Vary header. So setting this variable means that the Vary header will be appended.
 
 The third line is a new condition instructing that the following rule is only to be applied, if there is not already a converted file. Thus, there will be no more rules to be applied if the converted file exists. The $1 and $2 refers to matches of the following rule. The condition will only match files ending with ".jpeg.webp", "jpg.webp" or "png.webp". As a webp is thus requested, it makes sense to have the rule apply even to browsers not accepting "image/webp". 
 
