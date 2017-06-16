@@ -16,12 +16,12 @@ Note that the solution does not change any HTML. In the HTML the image src is st
 
 The plugin is based on a solution posted [here](https://www.bitwise-it.dk/blog/webp-on-demand)
 
-== Limitations ==
+## Limitations
 
 * The solution does not work on Microsoft IIS server
 * The solution requires PHP > 5.5.0 compiled with webp support
 
-== Frequently Asked Questions ==
+## FAQ
 
 = How do I make this work with a CDN? =
 Chances are that the default setting of your CDN is not to forward any headers to your origin server. But the plugin needs the "Accept" header, because this is where the information is whether the browser accepts webp images or not. You will therefore have to make sure to configure your CDN to forward the "Accept" header.
@@ -32,7 +32,7 @@ The .htaccess takes care of setting the "Vary" HTTP header to "Accept" when rout
 The image converter is using the [imagewebp()](http://php.net/manual/en/function.imagewebp.php) function in PHP to create WebP images. The function is is available from PHP 5.5.0. However, it requires that PHP is compiled with WebP support, which unfortunately aren't the case on many webhosts (according to [this link](https://stackoverflow.com/questions/25248382/how-to-create-a-webp-image-in-php)). WebP generation in PHP 5.5 requires that php is configured with the "--with-vpx-dir" flag and in PHP 7.0, php has to be configured --with-webp-dir flag [source](http://il1.php.net/manual/en/image.installation.php).
 
 
-== Roadmap ==
+## Roadmap
 
 * Use cweb converter when imagewebp isn't available. 
 
