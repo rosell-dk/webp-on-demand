@@ -10,16 +10,15 @@ The solution also works on images referenced in CSS.
 To use the solution on your website, simply copy the two files into your root folder. 
 
 ## Configuration
-The quality and the location of the converted files is customizable. For location, you have three options
+The quality and the location of the converted files is customizable. 
 
-Option 1: 
-Put the converted files in the same folder as the original. The file will get the same name as the original plus ".webp". Ie. "image.jpg" will be converted into "image.jpg.webp"
+For location, you have three options:
 
-Option 2:
-Put the converted files be into a specific folder. The converted files will then be organized into the same structure as the original. If you for example set the folder to be "webp-cache", then "/images/2017/fun-at-the-hotel.jpg" will be converted into "/webp-cache/images/2017/fun-at-the-hotel.jpg"
+1. Put the converted files in the same folder as the original. The file will get the same name as the original plus ".webp". Ie. "image.jpg" will be converted into "image.jpg.webp"
 
-Option 3:
-Do not to store the converted files at all. Each time an image is requested, a convertion will be made and served 
+2. Put the converted files be into a specific folder. The converted files will then be organized into the same structure as the original. If you for example set the folder to be "webp-cache", then "/images/2017/fun-at-the-hotel.jpg" will be converted into "/webp-cache/images/2017/fun-at-the-hotel.jpg"
+
+3. Do not to store the converted files at all. Each time an image is requested, a convertion will be made and served 
 
 You choose between the three options by commenting/uncommenting blocks in the .htaccess. Precise instructions are given in the .htaccess.
 
