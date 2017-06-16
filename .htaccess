@@ -17,7 +17,7 @@
 
   # Use the following six lines instead, if you want the generated files to be placed in
   # a separate folder, "/webp-cache/". Ie the webp image corresponding to
-  # "/images/logo.jpg" will become "/webp/images/logo.jpg.webp"
+  # "/images/logo.jpg" will become "/webp-cache/images/logo.jpg.webp"
   # You can change the name of the folder, but make sure to change it in all four places
   # Do not add full url with http in the rewrite rules, it will cause an extra request
 
