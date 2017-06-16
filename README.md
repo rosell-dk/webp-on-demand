@@ -29,7 +29,6 @@ Note that the solution does not change any HTML. In the HTML the image src is st
 - Reload the page
 - Find a jpeg or png image in the list. In the "type" column, it should say "webp"
 
-The solution is based on a solution posted [here](https://www.bitwise-it.dk/blog/webp-on-demand)
 
 ## Limitations
 
@@ -51,6 +50,11 @@ The image converter is using the [imagewebp()](http://php.net/manual/en/function
 ## Roadmap
 
 * Use cweb converter when imagewebp isn't available. 
+
+
+## Related
+* [My original post presenting the solution](https://www.bitwise-it.dk/blog/webp-on-demand)
+* I'm working on a Wordpress adaptation of the solution.
 
 ## Detailed explanation of how it works
 
