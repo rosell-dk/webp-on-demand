@@ -51,6 +51,20 @@ The image converter is using the [imagewebp()](http://php.net/manual/en/function
 
 * Use cweb converter when imagewebp isn't available. 
 
+## A similar project
+This project is very similar to [WebP realizer](https://github.com/rosell-dk/webp-realizer). *WebP realizer* assumes that the conditional part is in HTML, like this:
+```
+<picture>
+  <source srcset="images/button.jpg.webp" type="image/webp" />
+  <img src="images/button.jpg" />
+</picture>
+```
+And then it automatically generates "image.jpg.webp" for you, the first time it is requested.
+Pros and cons:
+
+- *WebP realizer* works better with CDN's - CDN does not need to cache different versions of the same URL
+- *WebP realizer* requires that special markup is used (or generated!)
+- *WebP realizer* does not work on images referenced in CSS (*WebP on demand* does)
 
 ## Related
 * [My original post presenting the solution](https://www.bitwise-it.dk/blog/webp-on-demand)
