@@ -36,6 +36,22 @@ The solution is based on a solution posted [here](https://www.bitwise-it.dk/blog
 * The solution does not work on Microsoft IIS server
 * The solution requires PHP > 5.5.0 compiled with webp support
 
+
+## FAQ
+
+### How do I make this work with a CDN?
+Chances are that the default setting of your CDN is not to forward any headers to your origin server. But the solution needs the "Accept" header, because this is where the information is whether the browser accepts webp images or not. You will therefore have to make sure to configure your CDN to forward the "Accept" header.
+
+The .htaccess takes care of setting the "Vary" HTTP header to "Accept" when routing WebP images. When the CDN sees this, it knows that the response varies, depending on the "Accept" header. The CDN is thus instructed not to cache the response on URL only, but also on the "Accept" header. This means that it will store an image for every accept header it meets. Luckily, there are (not that many variants for images[https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation/List_of_default_Accept_values#Values_for_an_image], so it is not an issue.
+
+### Image converter does not work
+The image converter is using the [imagewebp()](http://php.net/manual/en/function.imagewebp.php) function in PHP to create WebP images. The function is is available from PHP 5.5.0. However, it requires that PHP is compiled with WebP support, which unfortunately aren't the case on many webhosts (according to [this link](https://stackoverflow.com/questions/25248382/how-to-create-a-webp-image-in-php)). WebP generation in PHP 5.5 requires that php is configured with the "--with-vpx-dir" flag and in PHP 7.0, php has to be configured --with-webp-dir flag [source](http://il1.php.net/manual/en/image.installation.php).
+
+
+## Roadmap
+
+* Use cweb converter when imagewebp isn't available. 
+
 ## Detailed explanation of how it works
 
 
@@ -87,20 +103,4 @@ RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert.php?file=$1.$2&quality=100&no-save 
 
 The "no-save" parameter instructs the script not to save the file, but just convert and return the raw image data.
 
-
-
-## FAQ
-
-### How do I make this work with a CDN?
-Chances are that the default setting of your CDN is not to forward any headers to your origin server. But the solution needs the "Accept" header, because this is where the information is whether the browser accepts webp images or not. You will therefore have to make sure to configure your CDN to forward the "Accept" header.
-
-The .htaccess takes care of setting the "Vary" HTTP header to "Accept" when routing WebP images. When the CDN sees this, it knows that the response varies, depending on the "Accept" header. The CDN is thus instructed not to cache the response on URL only, but also on the "Accept" header. This means that it will store an image for every accept header it meets. Luckily, there are (not that many variants for images[https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation/List_of_default_Accept_values#Values_for_an_image], so it is not an issue.
-
-### Image converter does not work
-The image converter is using the [imagewebp()](http://php.net/manual/en/function.imagewebp.php) function in PHP to create WebP images. The function is is available from PHP 5.5.0. However, it requires that PHP is compiled with WebP support, which unfortunately aren't the case on many webhosts (according to [this link](https://stackoverflow.com/questions/25248382/how-to-create-a-webp-image-in-php)). WebP generation in PHP 5.5 requires that php is configured with the "--with-vpx-dir" flag and in PHP 7.0, php has to be configured --with-webp-dir flag [source](http://il1.php.net/manual/en/image.installation.php).
-
-
-## Roadmap
-
-* Use cweb converter when imagewebp isn't available. 
 
