@@ -49,7 +49,9 @@ The image converter is using the [imagewebp()](http://php.net/manual/en/function
 
 ## Roadmap
 
-* Use cweb converter when imagewebp isn't available. 
+* Use cweb converter when imagewebp isn't available.
+* Only serve webp when filesize is smaller than original (ie. the script can generate an (extra) file image.jpg.webp.too-big.txt when filesize is larger - the htaccess can test for its existence)
+* Is there a trick to detect that the original has been updated?
 
 ## A similar project
 This project is very similar to [WebP realizer](https://github.com/rosell-dk/webp-realizer). *WebP realizer* assumes that the conditional part is in HTML, like this:
@@ -66,10 +68,6 @@ Pros and cons:
 - *WebP realizer* requires that special markup is used (or generated!)
 - *WebP realizer* does not work on images referenced in CSS (*WebP on demand* does)
 
-## Related
-* [My original post presenting the solution](https://www.bitwise-it.dk/blog/webp-on-demand)
-* [Wordpress adaptation of the solution](https://github.com/rosell-dk/webp-express) - It's on github, but I have submitted it to Wordpress. Once it is hopefully approved, you will be able to install it directly from wordpress. It is called "WebP Express"
-* I'm working on a very similar, but distincly different solution, which I call webp-realizer. It's on github [here](https://github.com/rosell-dk/webp-realizer)
 
 ## Detailed explanation of how it works
 
@@ -139,5 +137,11 @@ RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert.php?file=$1.$2&quality=100&no-save 
 ```
 
 The "no-save" parameter instructs the script not to save the file, but just convert and return the raw image data.
+
+## Related
+* [My original post presenting the solution](https://www.bitwise-it.dk/blog/webp-on-demand)
+* [Wordpress adaptation of the solution](https://github.com/rosell-dk/webp-express) - It's on github, but I have submitted it to Wordpress. Once it is hopefully approved, you will be able to install it directly from wordpress. It is called "WebP Express"
+* I'm working on a very similar, but distincly different solution, which I call webp-realizer. It's on github [here](https://github.com/rosell-dk/webp-realizer)
+* https://www.maxcdn.com/blog/how-to-reduce-image-size-with-webp-automagically/
 
 
