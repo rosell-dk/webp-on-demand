@@ -97,16 +97,16 @@ Lets take it line by line, skipping the first couple of lines:
 ```RewriteCond %{HTTP_ACCEPT} image/webp```\
 The first RewriteCond is a condition which makes sure that the following rule only applies when the client has send a HTTP_ACCEPT header containing "image/webp". In other words: The next rule must only activate when the browser accepts WebP images.
 
-```RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [T=image/webp,E=accept:1]```
+```RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [T=image/webp,E=accept:1]```\
 The next line rewrites any request that ends with ".jpg", ".jpeg" or ".png". The target is same as source, but with ".webp" appended to it. Also, MIME type of the response is set to "image/webp". The E flag part sets the environment variable "accept" to 1. This is used further down in the .htaccess to conditionally append a Vary header. So setting this variable means that the Vary header will be appended.
 
-```RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f```
+```RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f```\
 The third line is a new condition instructing that the following rule is only to be applied, if there is not already a converted file. Thus, there will be no more rules to be applied if the converted file exists. The $1 and $2 refers to matches of the following rule. The condition will only match files ending with ".jpeg.webp", "jpg.webp" or "png.webp". As a webp is thus requested, it makes sense to have the rule apply even to browsers not accepting "image/webp". 
 
-```RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert.php?file=$1.$2&quality=80```
+```RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert.php?file=$1.$2&quality=80```\
 The fourth line rewrites any request that ends with ".jpg", ".jpeg" or ".png" to point to the image converter script. The php script get passed a "file" parameter, which is the file path of the image. The script also accepts a destination folder. It is not set here, which means the script will save the the file in the same folder as the source.
 
-```Header append Vary Accept env=REDIRECT_accept```
+```Header append Vary Accept env=REDIRECT_accept```\
 This line appends a response header containing: "Vary: Accept", but only when the environment variable "accept" is set by the "REDIRECT" module.
  
 
