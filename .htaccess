@@ -41,7 +41,7 @@
 
 # TODO: TEST THAT IT IS ADDED!
 <IfModule mod_headers.c>
-    Header append Vary Accept env=accept2
+    Header append Vary Accept env=REDIRECT_accept
 </IfModule>
 
 AddType image/webp .webp
