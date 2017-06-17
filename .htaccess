@@ -38,8 +38,10 @@
 # The effect is that the CDN will cache both the webp image and the jpeg/png image
 # and return the proper image to the proper clients (for this to work, make sure to
 # set up CDN to forward the "Accept" header)
+
+# TODO: TEST THAT IT IS ADDED!
 <IfModule mod_headers.c>
-    Header append Vary Accept env=REDIRECT_accept
+    Header append Vary Accept env=accept2
 </IfModule>
 
 AddType image/webp .webp
