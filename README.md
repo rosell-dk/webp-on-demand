@@ -92,8 +92,9 @@ When the destination of the converted files is set to be the same as the origina
 AddType image/webp .webp
 ```
 
+Lets take it line by line, skipping the first couple of lines:
 
-```RewriteCond %{HTTP_ACCEPT} image/webp```
+```RewriteCond %{HTTP_ACCEPT} image/webp```\
 The first RewriteCond is a condition which makes sure that the following rule only applies when the client has send a HTTP_ACCEPT header containing "image/webp". In other words: The next rule must only activate when the browser accepts WebP images.
 
 ```RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [T=image/webp,E=accept:1]```
