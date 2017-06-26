@@ -53,20 +53,6 @@ The image converter is using the [imagewebp()](http://php.net/manual/en/function
 * Only serve webp when filesize is smaller than original (ie. the script can generate an (extra) file image.jpg.webp.too-big.txt when filesize is larger - the htaccess can test for its existence)
 * Is there a trick to detect that the original has been updated?
 
-## A similar project
-This project is very similar to [WebP realizer](https://github.com/rosell-dk/webp-realizer). *WebP realizer* assumes that the conditional part is in HTML, like this:
-```
-<picture>
-  <source srcset="images/button.jpg.webp" type="image/webp" />
-  <img src="images/button.jpg" />
-</picture>
-```
-And then it automatically generates "image.jpg.webp" for you, the first time it is requested.
-Pros and cons:
-
-- *WebP realizer* works better with CDN's - CDN does not need to cache different versions of the same URL
-- *WebP realizer* requires that special markup is used (or generated!)
-- *WebP realizer* does not work on images referenced in CSS (*WebP on demand* does)
 
 
 ## Detailed explanation of how it works
@@ -82,7 +68,7 @@ When the destination of the converted files is set to be the same as the origina
   RewriteCond %{HTTP_ACCEPT} image/webp
   RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [T=image/webp,E=accept:1]
   RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f
-  RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert.php?file=$1.$2&quality=80
+  RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=80&preferred-converters=imagick,cwebp&serve-image
 </IfModule>
 <IfModule mod_headers.c>
     Header append Vary Accept env=REDIRECT_accept
@@ -101,8 +87,8 @@ This line rewrites any request that ends with ".jpg", ".jpeg" or ".png". The tar
 ```RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f```\
 This line is a new condition instructing that the following rule is only to be applied, if there is not already a converted file. Thus, there will be no more rules to be applied if the converted file exists. The $1 and $2 refers to matches of the following rule. The condition will only match files ending with ".jpeg.webp", "jpg.webp" or "png.webp". As a webp is thus requested, it makes sense to have the rule apply even to browsers not accepting "image/webp". 
 
-```RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert.php?file=$1.$2&quality=80```\
-The fourth line rewrites any request that ends with ".jpg", ".jpeg" or ".png" to point to the image converter script. The php script get passed a "file" parameter, which is the file path of the image. The script also accepts a destination folder. It is not set here, which means the script will save the the file in the same folder as the source.
+```RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=80&preferred-converters=imagick,cwebp&serve-image```\
+The fourth line rewrites any request that ends with ".jpg", ".jpeg" or ".png" to point to the image converter script. The php script get passed a "source" parameter, which is the file path of the source image. The script also accepts a destination root. It is not set here, which means the script will save the the file in the same folder as the source.
 
 ```Header append Vary Accept env=REDIRECT_accept```\
 This line appends a response header containing: "Vary: Accept", but only when the environment variable "accept" is set by the "REDIRECT" module.
@@ -114,7 +100,7 @@ When the destination of the converted files is set to be a specific folder as th
 ```
 RewriteCond %{HTTP_ACCEPT} image/webp
 RewriteCond %{DOCUMENT_ROOT}/web-cache/$1.$2.webp !-f
-RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert.php?file=$1.$2&quality=80&destination-folder=webp-cache/ [T=image/webp,E=accept:1]
+RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert/webp-convert.php?source=$1.$2&quality=80&destination-root=webp-cache&preferred-converters=imagick,cwebp&serve-image [T=image/webp,E=accept:1]
 
 RewriteCond %{HTTP_ACCEPT} image/webp
 RewriteCond %{DOCUMENT_ROOT}/webp-cache/$1.$2.webp -f
@@ -127,21 +113,25 @@ The second line and third line together takes care of rewriting requests that en
 
 The fourth and fifth line together takes care of rewriting requests that points to already converted files, residing in the specific destination folder.
 
-### With location set to specific folder (option 3)
-The core functionality in the .htaccess when converted images are not to be stored is very simple:
-
+## A similar project
+This project is very similar to [WebP realizer](https://github.com/rosell-dk/webp-realizer). *WebP realizer* assumes that the conditional part is in HTML, like this:
 ```
-RewriteCond %{HTTP_ACCEPT} image/webp
-RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert.php?file=$1.$2&quality=100&no-save [T=image
-/webp,E=accept:1]
+<picture>
+  <source srcset="images/button.jpg.webp" type="image/webp" />
+  <img src="images/button.jpg" />
+</picture>
 ```
+And then it automatically generates "image.jpg.webp" for you, the first time it is requested.\
+Pros and cons:
 
-The "no-save" parameter instructs the script not to save the file, but just convert and return the raw image data.
+- *WebP on demand* works on images referenced in CSS (*WebP realizer* does not)\
+- *WebP on demand* requires no change in HTML (*WebP realizer* does)\
+- *WebP realizer* works better with CDN's - CDN does not need to cache different versions of the same URL
+
 
 ## Related
 * [My original post presenting the solution](https://www.bitwise-it.dk/blog/webp-on-demand)
-* [Wordpress adaptation of the solution](https://github.com/rosell-dk/webp-express) - It's on github, but I have submitted it to Wordpress. Once it is hopefully approved, you will be able to install it directly from wordpress. It is called "WebP Express"
-* I'm working on a very similar, but distincly different solution, which I call webp-realizer. It's on github [here](https://github.com/rosell-dk/webp-realizer)
+* [Wordpress adaptation of the solution](https://github.com/rosell-dk/webp-express) - It's on github, but I have submitted it to Wordpress. Once it is hopefully approved, you will be able to install it directly from Wordpress. It is called "WebP Express"
 * https://www.maxcdn.com/blog/how-to-reduce-image-size-with-webp-automagically/
 
 

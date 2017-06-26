@@ -12,7 +12,7 @@
   RewriteCond %{HTTP_ACCEPT} image/webp
   RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [T=image/webp,E=accept:1]
   RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f
-  RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert.php?file=$1.$2&quality=80
+  RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=80&preferred-converters=imagick,cwebp&serve-image
 
 
   # Use the following six lines instead, if you want the generated files to be placed in
@@ -21,16 +21,12 @@
   # You can change the name of the folder, but make sure to change it in all four places
   # Do not add full url with http in the rewrite rules, it will cause an extra request
 
-  # RewriteCond %{HTTP_ACCEPT} image/webp
-  # RewriteCond %{DOCUMENT_ROOT}/web-cache/$1.$2.webp !-f
-  # RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert.php?file=$1.$2&quality=80&destination-folder=webp-cache/ [T=image/webp,E=accept:1]
-  # RewriteCond %{DOCUMENT_ROOT}/webp-cache/$1.$2.webp -f
-  # RewriteRule ^(.*)\.(jpe?g|png)$ /webp-cache/$1.$2.webp [T=image/webp,E=accept:1]
-
-  # Use the following lines instead, if you do not want converted files to be saved, but 
-  # rather have them generated on the fly each time. This can make sense with a CDN
-  # RewriteCond %{HTTP_ACCEPT} image/webp
-  # RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert.php?file=$1.$2&quality=100&no-save [T=image/webp,E=accept:1]
+#  RewriteCond %{HTTP_ACCEPT} image/webp
+#  RewriteCond %{DOCUMENT_ROOT}/web-cache/$1.$2.webp !-f
+#  RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert/webp-convert.php?source=$1.$2&quality=80&destination-root=webp-cache&preferred-converters=imagick,cwebp&serve-image [T=image/webp,E=accept:1]
+#  RewriteCond %{HTTP_ACCEPT} image/webp
+#  RewriteCond %{DOCUMENT_ROOT}/webp-cache/$1.$2.webp -f
+#  RewriteRule ^(.*)\.(jpe?g|png)$ /webp-cache/$1.$2.webp [T=image/webp,E=accept:1]
 
 </IfModule>
 
@@ -38,8 +34,6 @@
 # The effect is that the CDN will cache both the webp image and the jpeg/png image
 # and return the proper image to the proper clients (for this to work, make sure to
 # set up CDN to forward the "Accept" header)
-
-# TODO: TEST THAT IT IS ADDED!
 <IfModule mod_headers.c>
     Header append Vary Accept env=REDIRECT_accept
 </IfModule>
