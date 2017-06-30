@@ -7,7 +7,7 @@ The solution also works on images referenced in CSS.
 The image converter is able to use several methods to convert the image (imagick extension, gd extension, directly call cwebp binary or connect to ewww image optimizer cloud service). To learn the options, go to the [project on github](https://github.com/rosell-dk/webp-convert)
 
 ## Installation
-1. Copy the .htaccess and the webp-convert directory into the root of your site
+1. Copy the .htaccess and the webp-convert directory into the root of your site. If you are using ```git clone```, note that you can pass ```--recursive``` to the ```clone``` command in order have the *webp-convert* [submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) fetched as well.
 2. Make sure that www-data has permission to write in the relevant portion of your site
 3. If you are using nginx to serve jpeg's and png's, reconfigure it so Apache get to serve these
 
