@@ -9,7 +9,7 @@ The image converter is able to use several methods to convert the image (imagick
 ## Installation
 1. Copy the .htaccess and the webp-convert directory into the root of your site. If you are using ```git clone```, note that you can pass ```--recursive``` to the ```clone``` command in order have the *webp-convert* [submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) fetched as well.
 2. Make sure that www-data has permission to write in the relevant portion of your site
-3. If you are using nginx to serve jpeg's and png's, reconfigure it so Apache get to serve these
+3. If you are using *nginx* to serve jpeg's and png's, reconfigure it so Apache get to serve these
 
 ## Configuration
 The quality and the location of the converted files is customizable. 
