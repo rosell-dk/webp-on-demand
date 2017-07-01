@@ -3,7 +3,7 @@
   RewriteBase /
 
 
-  # Use these four lines if you want the generated files to be placed
+  # Use these six lines if you want the generated files to be placed
   # in the same folder as the original image, Ie the webp image corresponding to
   # "/images/logo.jpg" will become "/images/logo.jpg.webp"
   # You can set the quality of the generated webp here (a number between 0-100)
@@ -11,6 +11,10 @@
 
   RewriteCond %{HTTP_ACCEPT} image/webp
   RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [T=image/webp,E=accept:1]
+
+  RewriteCond %{QUERY_STRING} (^debug.*)
+  RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=85&preferred-converters=imagick,cwebp,gd&serve-image=no&%1
+
   RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f
   RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=80&preferred-converters=imagick,cwebp&serve-image
 

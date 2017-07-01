@@ -35,6 +35,8 @@ Note that the solution does not change any HTML. In the HTML the image src is st
 - Reload the page
 - Find a jpeg or png image in the list. In the "type" column, it should say "webp"
 
+## Troubleshooting
+By appending "?debug" to your image url, you get a report from *webp-convert* instead of the converted image.
 
 ## Limitations
 
@@ -68,8 +70,13 @@ When the destination of the converted files is set to be the same as the origina
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+
   RewriteCond %{HTTP_ACCEPT} image/webp
   RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [T=image/webp,E=accept:1]
+
+  RewriteCond %{QUERY_STRING} (^debug.*)
+  RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=85&preferred-converters=imagick,cwebp,gd&serve-image=no&%1
+
   RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f
   RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=80&preferred-converters=imagick,cwebp&serve-image
 </IfModule>
@@ -87,11 +94,17 @@ This condition makes sure that the following rule only applies when the client h
 ```RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [T=image/webp,E=accept:1]```\
 This line rewrites any request that ends with ".jpg", ".jpeg" or ".png". The target is set to the same as source, but with ".webp" appended to it. Also, MIME type of the response is set to "image/webp" (my tests shows that Apache gets the MIME type right without this, but better safe than sorry - it might be needed in other versions of Apache). The E flag part sets the environment variable "accept" to 1. This is used further down in the .htaccess to conditionally append a Vary header. So setting this variable means that the Vary header will be appended if the rule is triggered.
 
+```RewriteCond %{QUERY_STRING} (^debug.*)```\
+This line and the next adds a debuging capability. By appending "?debug" to your image url, you get a report from webp-convert instead of the converted image. It also lets you override *webp-convert* options. Appending ie "?debug&preferred-converters=imagick" will get a report where imagick is set as the first converter to try. The parenthesis makes the whole match available in the following rule as "%1". The match could for example be "debug&quality=90". The following rule will only get executed when this condition is met.
+
+```RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=85&preferred-converters=imagick,cwebp,gd&serve-image=no&%1```\
+This line rewrites any request that ends with ".jpg", ".jpeg" or ".png" to point to the image converter script. The php script get passed a "source" parameter, which is the file path of the source image. The script also accepts a destination root. It is not set here, which means the script will save the the file in the same folder as the source. The converter script is passed the option *serve-image=no*, which makes webp-convert serve a report of the convertion process instead of the converted image. The *%1* inserts the match of the preceding condition
+
 ```RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f```\
 This line is a new condition instructing that the following rule is only to be applied, if there is not already a converted file. Thus, there will be no more rules to be applied if the converted file exists. The $1 and $2 refers to matches of the following rule. The condition will only match files ending with ".jpeg.webp", "jpg.webp" or "png.webp". As a webp is thus requested, it makes sense to have the rule apply even to browsers not accepting "image/webp". 
 
 ```RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=80&preferred-converters=imagick,cwebp&serve-image```\
-The fourth line rewrites any request that ends with ".jpg", ".jpeg" or ".png" to point to the image converter script. The php script get passed a "source" parameter, which is the file path of the source image. The script also accepts a destination root. It is not set here, which means the script will save the the file in the same folder as the source.
+This line rewrites any request that ends with ".jpg", ".jpeg" or ".png" to point to the image converter script. The php script get passed a "source" parameter, which is the file path of the source image. The script also accepts a destination root. It is not set here, which means the script will save the the file in the same folder as the source.
 
 ```Header append Vary Accept env=REDIRECT_accept```\
 This line appends a response header containing: "Vary: Accept", but only when the environment variable "accept" is set by the "REDIRECT" module.
