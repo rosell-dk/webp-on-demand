@@ -40,7 +40,6 @@ By appending ```?debug``` to your image url, you get a report from *WebP convert
 
 - Perhaps there are other rules in your htaccess that interferes with the rules?
 - Perhaps you are using *nginx* to serve image files, which means Apache does not get the chance to process the request. You then need to reconfigure your server setup
-- Perhaps your extension is in UPPER CASE. This is not supported yet
 
 If you *do* get a report, see what it says. As with ```&reconvert```, you can set up *WebP convert* options. Ie. appending "&debug&preferred-converters=gd" will configure *WebP convert* to try the *gd* converter before the other converters.
 
