@@ -71,12 +71,12 @@ When the destination of the converted files is set to be the same as the origina
   RewriteBase /
 
   RewriteCond %{HTTP_ACCEPT} image/webp
-  RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [T=image/webp,E=accept:1]
+  RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=accept:1]
 
   RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
   RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f
   RewriteCond %{QUERY_STRING} (.*)
-  RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=85&preferred-converters=imagick,cwebp,gd&serve-image=yes&%1
+  RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=85&preferred-converters=imagick,cwebp,gd&serve-image=yes&%1 [NC]
 
 </IfModule>
 <IfModule mod_headers.c>
@@ -90,8 +90,8 @@ Lets take it line by line, skipping the first couple of lines:
 ```RewriteCond %{HTTP_ACCEPT} image/webp```\
 This condition makes sure that the following rule only applies when the client has sent a HTTP_ACCEPT header containing "image/webp". In other words: The next rule only activates if the browser accepts WebP images.
 
-```RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [T=image/webp,E=accept:1]```\
-This line rewrites any request that ends with ".jpg", ".jpeg" or ".png". The target is set to the same as source, but with ".webp" appended to it. Also, MIME type of the response is set to "image/webp" (my tests shows that Apache gets the MIME type right without this, but better safe than sorry - it might be needed in other versions of Apache). The E flag part sets the environment variable "accept" to 1. This is used further down in the .htaccess to conditionally append a Vary header. So setting this variable means that the Vary header will be appended if the rule is triggered.
+```RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=accept:1]```\
+This line rewrites any request that ends with ".jpg", ".jpeg" or ".png" (case insensitive). The target is set to the same as source, but with ".webp" appended to it. Also, MIME type of the response is set to "image/webp" (my tests shows that Apache gets the MIME type right without this, but better safe than sorry - it might be needed in other versions of Apache). The E flag part sets the environment variable "accept" to 1. This is used further down in the .htaccess to conditionally append a Vary header. So setting this variable means that the Vary header will be appended if the rule is triggered. The NC flag makes the match case insensitive. 
 
 ```RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]```\
 This line tests if the query string starts with "reconvert" or "debug". If it does, the rule that passes the request to the image converter will have green light to go. So appending "&reconvert" to an image url will force a new convertion even though the image is already converted. And appending "&debug" also bypasses the file check, and actually also results in a reconversion - but with text output instead of the image.
@@ -102,7 +102,7 @@ This line adds the condition that the image is not already converted. The $1 and
 ```RewriteCond %{QUERY_STRING} (.*)```\
 This line enables us to use the query string in the following rule, as it will be available as "%1". The condition is always met.
 
-```RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=85&preferred-converters=imagick,cwebp,gd&serve-image=yes&%1```\
+```RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=85&preferred-converters=imagick,cwebp,gd&serve-image=yes&%1 [NC]```\
 This line rewrites any request that ends with ".jpg", ".jpeg" or ".png" to point to the image converter script. The php script get passed a "source" parameter, which is the file path of the source image. The script also accepts a destination root. It is not set here, which means the script will save the the file in the same folder as the source. The %1 is the original query string (it refers to the match of the preceding condition). This enables overiding the converter options set here. For example appending "&debug&preferred-converters=gd" can be used to test the gd converter. Or "&reconvert&quality=100" can be appended in order to reconvert the image using better quality.
 
 ```Header append Vary Accept env=REDIRECT_accept```\
@@ -117,15 +117,15 @@ RewriteCond %{HTTP_ACCEPT} image/webp
 RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
 RewriteCond %{DOCUMENT_ROOT}/webp-cache/$1.$2.webp !-f
 RewriteCond %{QUERY_STRING} (.*)
-RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert/webp-convert.php?source=$1.$2&quality=80&destination-root=webp-cache&preferred-converters=imagick,cwebp&serve-image=yes&%1 [T=image/webp,E=accept:1]
+RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert/webp-convert.php?source=$1.$2&quality=80&destination-root=webp-cache&preferred-converters=imagick,cwebp&serve-image=yes&%1 [NC,T=image/webp,E=accept:1]
 
 RewriteCond %{HTTP_ACCEPT} image/webp
 RewriteCond %{QUERY_STRING} !((^reconvert.*)|(^debug.*))
 RewriteCond %{DOCUMENT_ROOT}/webp-cache/$1.$2.webp -f
-RewriteRule ^(.*)\.(jpe?g|png)$ /webp-cache/$1.$2.webp [T=image/webp,E=accept:1,QSD]
+RewriteRule ^(.*)\.(jpe?g|png)$ /webp-cache/$1.$2.webp [NC,T=image/webp,E=accept:1,QSD]
 ```
 
-The code is divided in two blocks. The first block takes care of delegating the request to the image converter under a set of conditions. The other block takes care of rewriting the url to point to an existing image. The two set of conditions are mutual exclusive.
+The code is divided in two blocks. The first block takes care of delegating the request to the image converter under a set of conditions. The other block takes care of rewriting the url to point to an existing image under another set of conditions. The two set of conditions are mutual exclusive.
 
 You should know that in *mod_rewrite*, OR has higher precedence than AND [[ref](https://stackoverflow.com/questions/922399/how-to-use-and-or-for-rewritecond-on-apache)]. The first set of conditions thus reads:
 

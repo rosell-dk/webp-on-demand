@@ -10,12 +10,12 @@
   # If you do not want png images to be converted, simply remove "|png" from the code
 
   RewriteCond %{HTTP_ACCEPT} image/webp
-  RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [T=image/webp,E=accept:1]
+  RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=accept:1]
 
   RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
   RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f
   RewriteCond %{QUERY_STRING} (.*)
-  RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=85&preferred-converters=imagick,cwebp,gd&serve-image=yes&%1
+  RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=85&preferred-converters=imagick,cwebp,gd&serve-image=yes&%1 [NC]
 
   # Use the following nine lines instead, if you want the generated files to be placed in
   # a separate folder, "/webp-cache/". Ie the webp image corresponding to
@@ -27,12 +27,12 @@
 #  RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
 #  RewriteCond %{DOCUMENT_ROOT}/webp-cache/$1.$2.webp !-f
 #  RewriteCond %{QUERY_STRING} (.*)
-#  RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert/webp-convert.php?source=$1.$2&quality=80&destination-root=webp-cache&preferred-converters=imagick,cwebp&serve-image=yes&%1 [T=image/webp,E=accept:1]
+#  RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert/webp-convert.php?source=$1.$2&quality=80&destination-root=webp-cache&preferred-converters=imagick,cwebp&serve-image=yes&%1 [NC,T=image/webp,E=accept:1]
 
 #  RewriteCond %{HTTP_ACCEPT} image/webp
 #  RewriteCond %{QUERY_STRING} !((^reconvert.*)|(^debug.*))
 #  RewriteCond %{DOCUMENT_ROOT}/webp-cache/$1.$2.webp -f
-#  RewriteRule ^(.*)\.(jpe?g|png)$ /webp-cache/$1.$2.webp [T=image/webp,E=accept:1,QSD]
+#  RewriteRule ^(.*)\.(jpe?g|png)$ /webp-cache/$1.$2.webp [NC,T=image/webp,E=accept:1,QSD]
 </IfModule>
 
 # Making CDN caching possible.
