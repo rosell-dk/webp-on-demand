@@ -24,7 +24,7 @@ You choose between the two options by commenting/uncommenting blocks in the .hta
 
 You can configure the image converter directly in the .htaccess. The options are described on the project page of [webp-convert](https://github.com/rosell-dk/webp-convert) (scroll down to the part that describes the script)
 
-If you want to have a different quality on a certain image, you can append "&reconvert&quality=95" to the image url. You can in fact override any change any converter option like this. Note however that this feature is currently only implemented when converted files are in the same folder - but its on the roadmap for the other option.
+If you want to have a different quality on a certain image, you can append "&reconvert&quality=95" to the image url. You can in fact override any change any converter option like this.
 
 ## Verifying that it works
 Note that the solution does not change any HTML. In the HTML the image src is still set to ie "example.jpg". On browsers that supports WebP images, that request is routed to the WebP image. To verify that the solution is working, do the following:
@@ -36,10 +36,11 @@ Note that the solution does not change any HTML. In the HTML the image src is st
 - Find a jpeg or png image in the list. In the "type" column, it should say "webp"
 
 ## Troubleshooting
-By appending ```?debug``` to your image url, you get a report from *WebP convert* instead of the converted image. If there is no report, it means that the .htaccess is not working as intended. *NOTE: This feature is currently only implemented when converted files are in the same folder* - but its on the roadmap for the other option
+By appending ```?debug``` to your image url, you get a report from *WebP convert* instead of the converted image. If there is no report, it means that the .htaccess is not working as intended.
 
 - Perhaps there are other rules in your htaccess that interferes with the rules?
 - Perhaps you are using *nginx* to serve image files, which means Apache does not get the chance to process the request. You then need to reconfigure your server setup
+- Perhaps your extension is in UPPER CASE. This is not supported yet
 
 If you *do* get a report, see what it says. As with ```&reconvert```, you can set up *WebP convert* options. Ie. appending "&debug&preferred-converters=gd" will configure *WebP convert* to try the *gd* converter before the other converters.
 
@@ -56,14 +57,6 @@ If you *do* get a report, see what it says. As with ```&reconvert```, you can se
 Chances are that the default setting of your CDN is not to forward any headers to your origin server. But the solution needs the "Accept" header, because this is where the information is whether the browser accepts webp images or not. You will therefore have to make sure to configure your CDN to forward the "Accept" header.
 
 The .htaccess takes care of setting the "Vary" HTTP header to "Accept" when routing WebP images. When the CDN sees this, it knows that the response varies, depending on the "Accept" header. The CDN is thus instructed not to cache the response on URL only, but also on the "Accept" header. This means that it will store an image for every accept header it meets. Luckily, there are (not that many variants for images[https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation/List_of_default_Accept_values#Values_for_an_image], so it is not an issue.
-
-
-## Roadmap
-
-* Make &debug and &reconvert options available for the other method as well
-* Only serve webp when filesize is smaller than original (ie. the script can generate an (extra) file image.jpg.webp.too-big.txt when filesize is larger - the htaccess can test for its existence)
-* Is there a trick to detect that the original has been updated?
-
 
 
 ## Detailed explanation of how it works
@@ -121,19 +114,32 @@ When the destination of the converted files is set to be a specific folder as th
 
 ```
 RewriteCond %{HTTP_ACCEPT} image/webp
-RewriteCond %{DOCUMENT_ROOT}/web-cache/$1.$2.webp !-f
-RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert/webp-convert.php?source=$1.$2&quality=80&destination-root=webp-cache&preferred-converters=imagick,cwebp&serve-image [T=image/webp,E=accept:1]
+RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
+RewriteCond %{DOCUMENT_ROOT}/webp-cache/$1.$2.webp !-f
+RewriteCond %{QUERY_STRING} (.*)
+RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert/webp-convert.php?source=$1.$2&quality=80&destination-root=webp-cache&preferred-converters=imagick,cwebp&serve-image=yes&%1 [T=image/webp,E=accept:1]
 
 RewriteCond %{HTTP_ACCEPT} image/webp
+RewriteCond %{QUERY_STRING} !((^reconvert.*)|(^debug.*))
 RewriteCond %{DOCUMENT_ROOT}/webp-cache/$1.$2.webp -f
-RewriteRule ^(.*)\.(jpe?g|png)$ /webp-cache/$1.$2.webp [T=image/webp,E=accept:1]
+RewriteRule ^(.*)\.(jpe?g|png)$ /webp-cache/$1.$2.webp [T=image/webp,E=accept:1,QSD]
 ```
 
-The first line is a condition which makes sure that the following rule only applies when the client has send a HTTP_ACCEPT header containing "image/webp".
+The code is divided in two blocks. The first block takes care of delegating the request to the image converter under a set of conditions. The other block takes care of rewriting the url to point to an existing image. The two set of conditions are mutual exclusive.
 
-The second line and third line together takes care of rewriting requests that ends with ".jpg", ".jpeg" or ".png" to the converter script, when there is not already a converted file at the location. $1 matches the path of the original image. $2 matches the extension. The destination folder is set to "webp-cache" in this example. I have not set the rule to be last with the "L" directive, but this can be considered.
+You should know that in *mod_rewrite*, OR has higher precedence than AND [[ref](https://stackoverflow.com/questions/922399/how-to-use-and-or-for-rewritecond-on-apache)]. The first set of conditions thus reads:
 
-The fourth and fifth line together takes care of rewriting requests that points to already converted files, residing in the specific destination folder.
+If *Browser accepts webp images* AND (*Query string begins with "reconvert" or "debug"* OR *There is no existing converted image*) AND *Query string is empty or not*
+
+The last condition is always true. It is there to make the query string available to the following rule.
+
+The other set of conditions reads;
+If *Browser accepts webp images* AND *Query string does not begin with "reconvert" or "debug"* AND *There is an existing converted image*
+
+Otherwise it is the same kind of stuff that is going on as in option 1 - which is described in the preceding section. Oh, there is the QSD flag. It tells Apache to strip the query string.
+
+
+
 
 ## A similar project
 This project is very similar to [WebP realizer](https://github.com/rosell-dk/webp-realizer). *WebP realizer* assumes that the conditional part is in HTML, like this:
@@ -150,6 +156,11 @@ Pros and cons:
 - *WebP on demand* requires no change in HTML (*WebP realizer* does)\
 - *WebP realizer* works better with CDN's - CDN does not need to cache different versions of the same URL
 
+## Roadmap
+
+* Make it work when file extension is in UPPER CASE.
+* Only serve webp when filesize is smaller than original (ie. the script can generate an (extra) file image.jpg.webp.too-big.txt when filesize is larger - the htaccess can test for its existence)
+* Is there a trick to detect that the original has been updated?
 
 ## Related
 * [My original post presenting the solution](https://www.bitwise-it.dk/blog/webp-on-demand)
