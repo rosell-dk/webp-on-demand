@@ -158,7 +158,6 @@ Pros and cons:
 
 ## Roadmap
 
-* Make it work when file extension is in UPPER CASE.
 * Only serve webp when filesize is smaller than original (ie. the script can generate an (extra) file image.jpg.webp.too-big.txt when filesize is larger - the htaccess can test for its existence)
 * Is there a trick to detect that the original has been updated?
 
