@@ -47,8 +47,8 @@ You add options to `webp-on-demand.php` directly in the `.htaccess`. You can how
 
 | option                       | Description                                          |
 | ---------------------------- | --------------------------------------------- |
-| *source*                       | Path to source file.<br><br>It can be absolute or relative (relative to the `webp-on-demand.php` script). If it starts with "/", it is considered an absolute path.|
-| *destination-root* (optional)  | Default is ".", meaning that the destination folder will be the same as the source folder. <br><br>It can be absolute or relative (relative to the `webp-on-demand.php` script). If it starts with "/", it is considered an absolute path.|
+| *source*                       | Path to source file.<br><br>Path is relative to the `webp-on-demand.php` script. If it starts with "/", it is considered an absolute path.|
+| *destination-root* (optional)  | Default is ".", meaning that the destination folder will be the same as the source folder. <br><br>Path is relative to the `webp-on-demand.php` script. If it starts with "/", it is considered an absolute path.|
 | *quality* (optional)           | Quality of generated WebP image, 0-100. See [WebPConvert](https://github.com/rosell-dk/webp-convert#methods) docs |
 | *metadata* (optional)          | If set to "none", all metadata will be stripped. If set to "all", all metadata will be preserved. See [WebPConvert](https://github.com/rosell-dk/webp-convert#methods) docs |
 | *converters* (optional)        | See [WebPConvert](https://github.com/rosell-dk/webp-convert#methods) docs

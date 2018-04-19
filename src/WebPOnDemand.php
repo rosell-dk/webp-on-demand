@@ -3,12 +3,12 @@
 URL parameters:
 
 source: Path to source file.
-    Can be absolute or relative (relative to document root).
+    Can be absolute or relative to $root, that is passed in
     If it starts with "/", it is considered an absolute path.
 
 destination-root (optional):
     The final destination will be calculated like this:
-        [desired destination root] + [relative path of source file] + ".webp".
+        [destination-root] + [relative path of source file] + ".webp".
 
     - Both absolute paths and relative paths are accepted (if the path starts with "/", it is considered an absolute
       path).
@@ -68,7 +68,9 @@ class WebPOnDemand
 
         $debug = (isset($_GET['debug']) ? ($_GET['debug'] != 'no') : false);
 
-        $source = $root . '/' . $_GET['source'];
+        //$source = $root . '/' . $_GET['source'];
+        $source = PathHelper::abspath($_GET['source'], $root);
+
         $source = PathHelper::removeDoubleSlash($source);
 
 
