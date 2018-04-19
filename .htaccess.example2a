@@ -1,0 +1,33 @@
+# webp-on-demand
+# --------------
+# Use the following rules, if you want the generated files to be placed in a separate folder, "/webp-cache/". Ie the
+# webp image corresponding to "/images/logo.jpg" will become "/webp-cache/images/logo.jpg.webp"
+# You can change the name of the folder, but make sure to change it in all places.
+# Do not add full url with http in the rewrite rules, it will cause an extra request
+
+<IfModule mod_rewrite.c>
+
+    RewriteEngine On
+
+    RewriteCond %{HTTP_ACCEPT} image/webp
+    RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
+    RewriteCond %{DOCUMENT_ROOT}/webp-cache/$1.$2.webp !-f
+    RewriteCond %{QUERY_STRING} (.*)
+    RewriteRule ^(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=webp-cache&quality=80&fail=original&critical-fail=text&%1 [NC,T=image/webp,E=accept:1]
+    RewriteCond %{HTTP_ACCEPT} image/webp
+    RewriteCond %{QUERY_STRING} !((^reconvert.*)|(^debug.*))
+    RewriteCond %{DOCUMENT_ROOT}/webp-cache/$1.$2.webp -f
+    RewriteRule ^(.*)\.(jpe?g|png)$ /webp-cache/$1.$2.webp [NC,T=image/webp,E=accept:1,QSD]
+</IfModule>
+
+
+
+# Making CDN caching possible.
+# The effect is that the CDN will cache both the webp image and the jpeg/png image
+# and return the proper image to the proper clients (for this to work, make sure to
+# set up CDN to forward the "Accept" header)
+<IfModule mod_headers.c>
+    Header append Vary Accept env=REDIRECT_accept
+</IfModule>
+
+AddType image/webp .webp

@@ -1,0 +1,36 @@
+# webp-on-demand ("same location"-variation)
+# ------------------------------------------
+# Use this "same location" example, if you want the generated files to be placed in the same folder as the original
+# image, Ie the webp image corresponding to "/images/logo.jpg" will become "/images/logo.jpg.webp"
+
+# Copy parts of this file into .htaccess in the web-root, or in a folder
+# Please read all comments...
+
+<IfModule mod_rewrite.c>
+
+    RewriteEngine On
+
+    # RewriteBase /
+
+    RewriteCond %{HTTP_ACCEPT} image/webp
+    RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=accept:1]
+
+    RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
+
+    RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f
+
+    RewriteCond %{QUERY_STRING} (.*)
+
+    # If you do not want png images to be converted, simply remove "|png" from the code
+    RewriteRule ^(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=webp-cache&quality=80&fail=original&critical-fail=text&%1 [NC,T=image/webp,E=accept:1]
+
+</IfModule>
+
+# Making CDN caching possible.
+# The effect is that the CDN will cache both the webp image and the jpeg/png image and return the proper image to the
+# proper clients (for this to work, make sure to set up CDN to forward the "Accept" header)
+<IfModule mod_headers.c>
+    Header append Vary Accept env=REDIRECT_accept
+</IfModule>
+
+AddType image/webp .webp
