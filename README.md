@@ -1,5 +1,7 @@
 # WebP on demand
 
+[![Build Status](https://travis-ci.org/rosell-dk/webp-convert.png?branch=master)](https://travis-ci.org/rosell-dk/webp-convert-and-serve)
+
 This is a solution for serving auto-generated WebP images instead of JPEG/PNG to browsers that supports WebP (Google Chrome, that is). It works by `.htaccess magic` coupled with an image converter (using *NGINX*? &ndash; try looking [here](https://github.com/S1SYPHOS/kirby-webp#nginx)). Basically, JPEGS and PNGS are routed to the image converter, unless it has already converted the image. In that case, it is routed directly to the converted image.
 
 The image converter is able to use several methods to convert the image (`imagick`, `gd` directly calling `cwebp` binary or connecting to ewww image optimizer cloud service). Read more on its [project page](https://github.com/rosell-dk/webp-convert).
