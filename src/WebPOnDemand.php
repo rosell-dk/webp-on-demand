@@ -117,7 +117,7 @@ class WebPOnDemand
         $criticalFail = $failCodes[$criticalFail];
 
         if (!$debug) {
-            WebPConvertAndServe::convertAndServeImage($source, $destination, $options, $fail, $criticalFail);
+            return WebPConvertAndServe::convertAndServeImage($source, $destination, $options, $fail, $criticalFail);
         } else {
             echo 'GET parameters:<br>';
             echo '<i>source:</i> ' . $_GET['source'] . '<br>';
@@ -125,6 +125,7 @@ class WebPOnDemand
             echo '<br>';
             //echo $_SERVER['DOCUMENT_ROOT'];
             WebPConvertAndServe::convertAndReport($source, $destination, $options);
+            return 1;
         }
     }
     /*
