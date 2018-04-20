@@ -22,7 +22,7 @@
     RewriteCond %{QUERY_STRING} (.*)
 
     # If you do not want png images to be converted, simply remove "|png" from the code
-    RewriteRule ^(.*)\.(jpe?g|png)$ /your-folder/webp-on-demand.php?source=$1.$2&destination-root=webp-cache&quality=80&fail=original&critical-fail=text&%1 [NC,T=image/webp,E=accept:1]
+    RewriteRule ^(.*)\.(jpe?g|png)$ /your-folder/webp-on-demand.php?source=$1.$2&destination-root=webp-cache&quality=80&fail=original&critical-fail=report&%1 [NC,T=image/webp,E=accept:1]
 
 </IfModule>
 

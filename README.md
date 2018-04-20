@@ -53,8 +53,8 @@ You add options to `webp-on-demand.php` directly in the `.htaccess`. You can how
 | *metadata* (optional)          | If set to "none", all metadata will be stripped. If set to "all", all metadata will be preserved. See [WebPConvert](https://github.com/rosell-dk/webp-convert#methods) docs |
 | *converters* (optional)        | See [WebPConvert](https://github.com/rosell-dk/webp-convert#methods) docs
 | *debug* (optional)             | If set, a report will be served (as text) instead of an image |
-| *fail* (optional)              | What to serve if conversion fails. Default is  "original". Possible values: "original", "404", "text", "error-as-image". See [WebPConvertAndServe](https://github.com/rosell-dk/webp-convert-and-serve#api) docs|
-| *critical-fail* (optional)              | What to serve if conversion fails and source image is not availabl Default is  "error-as-image". Possible values: "original", "404", "text", "error-as-image". See [WebPConvertAndServe](https://github.com/rosell-dk/webp-convert-and-serve#api) docs |
+| *fail* (optional)              | What to serve if conversion fails. Default is  "original". Possible values: "original", "404", "report", "report-as-image". See [WebPConvertAndServe](https://github.com/rosell-dk/webp-convert-and-serve#api) docs|
+| *critical-fail* (optional)              | What to serve if conversion fails and source image is not availabl Default is  "error-as-image". Possible values: "original", "404", "report", "report-as-image". See [WebPConvertAndServe](https://github.com/rosell-dk/webp-convert-and-serve#api) docs |
 
 
 ## The .htacesss example files

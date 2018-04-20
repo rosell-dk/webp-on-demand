@@ -98,10 +98,10 @@ class WebPOnDemand
         }
 
         $failCodes = [
-            "original" => WebPConvertAndServe::$SERVE_ORIGINAL,
-            "404" => WebPConvertAndServe::$SERVE_404,
-            "error-as-image" => WebPConvertAndServe::$SERVE_ERROR_MESSAGE_IMAGE,
-            "text" => WebPConvertAndServe::$SERVE_ERROR_MESSAGE_TEXT,
+            "original" => WebPConvertAndServe::$ORIGINAL,
+            "404" => WebPConvertAndServe::$HTTP_404,
+            "error-as-image" => WebPConvertAndServe::$REPORT_AS_IMAGE,
+            "report" => WebPConvertAndServe::$REPORT,
         ];
 
         $fail = 'original';
