@@ -120,8 +120,9 @@ class WebPOnDemand
             return WebPConvertAndServe::convertAndServeImage($source, $destination, $options, $fail, $criticalFail);
         } else {
             echo 'GET parameters:<br>';
-            echo '<i>source:</i> ' . $_GET['source'] . '<br>';
-            echo '<i>destination-root:</i> ' . $_GET['destination-root'] . '<br>';
+            foreach ($_GET as $key => $value) {
+                echo '<i>' . $key . '</i>: ' . htmlspecialchars($value) . '<br>';
+            }
             echo '<br>';
             //echo $_SERVER['DOCUMENT_ROOT'];
             WebPConvertAndServe::convertAndReport($source, $destination, $options);
