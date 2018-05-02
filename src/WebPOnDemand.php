@@ -110,7 +110,7 @@ class WebPOnDemand
         }
         $fail = $failCodes[$fail];
 
-        $criticalFail = 'text';
+        $criticalFail = 'report';
         if (isset($_GET['critical-fail'])) {
             $criticalFail = $_GET['critical-fail'];
         }
