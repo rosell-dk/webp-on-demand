@@ -49,11 +49,14 @@ You add options to `webp-on-demand.php` directly in the `.htaccess`. You can how
 | ---------------------------- | --------------------------------------------- |
 | *source*                       | Path to source file.<br><br>Path is relative to the `webp-on-demand.php` script. If it starts with "/", it is considered an absolute path.|
 | *destination-root* (optional)  | Default is ".", meaning that the destination folder will be the same as the source folder. <br><br>Path is relative to the `webp-on-demand.php` script. If it starts with "/", it is considered an absolute path.|
-| *quality* (optional)           | Quality of generated WebP image, 0-100. See [WebPConvert](https://github.com/rosell-dk/webp-convert#methods) docs |
+| *quality* (optional)           | The quality of the generated WebP image, "auto" or 0-100. Defaults to "auto". See [WebPConvert](https://github.com/rosell-dk/webp-convert#methods) docs |
+| *max-quality* (optional)        | The maximum quality. Only relevant when quality is set to "auto" |
+| *default-quality* (optional)    | Fallback value for quality, if it isn't possible to detect quality of jpeg. Only relevant when quality is set to "auto" |
 | *metadata* (optional)          | If set to "none", all metadata will be stripped. If set to "all", all metadata will be preserved. See [WebPConvert](https://github.com/rosell-dk/webp-convert#methods) docs |
 | *converters* (optional)        | Comma-separated list of converters. Ie. "cwebp,gd". To pass options to the individual converters, see next. Also, check out the [WebPConvert](https://github.com/rosell-dk/webp-convert#methods) docs |
 | *[converter-id]-[option-name]* (optional)  | This pattern is used for setting options on the individual converters. Ie, in order to set the "key" option of the "ewww" converter, you pass "ewww-key".
 | *[converter-id]-[n]-[option-name]* (optional)  | Use this pattern for targeting options of a converter, that are used multiple times. However, use the pattern above for targeting the first occurence. `n` stands for the nth occurence of that converter in the `converters` option. Example: `...&converters=cwebp,ewww,ewww,gd,ewww&ewww-key=xxx&ewww-2-key=yyy&ewww-3-key=zzz&gd-skip-pngs=1` |
+| *[converter-id]-[option-name]-[2]* (optional) | This is an alternative, and simpler pattern than the above, for providing fallback for a single converter. If WebPOnDemand detects that such an option is provided (ie ewww-key-2=yyy), it will automatically insert an extra converter into the array (immidiately after), configured with the options with the '-2' postfix. Example: `...&converters=cwebp,ewww,gd&ewww-key=xxx&ewww-key-2=yyy` - will result in converter order: cwebp, ewww (with key=xxx), ewww (with key=yyy), gd |
 | *debug* (optional)             | If set, a report will be served (as text) instead of an image |
 | *fail* (optional)              | What to serve if conversion fails. Default is  "original". Possible values: "original", "404", "report", "report-as-image". See [WebPConvertAndServe](https://github.com/rosell-dk/webp-convert-and-serve#api) docs|
 | *critical-fail* (optional)              | What to serve if conversion fails and source image is not availabl Default is  "error-as-image". Possible values: "original", "404", "report", "report-as-image". See [WebPConvertAndServe](https://github.com/rosell-dk/webp-convert-and-serve#api) docs |
@@ -86,7 +89,7 @@ If you want to have a different quality on a certain image, you can append "&rec
 
 ## Requirements
 
-* Apache web server
+* Apache web server (not tested on LiteSpeed yet)
 * PHP > 5.5.0
 * That one of the WebP converters are working (these have different requirements)
 
