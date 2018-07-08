@@ -21,7 +21,13 @@ destination-root (optional):
     "webp-cache/images/2017/cool.jpg.webp".
 
 quality (optional):
-    The quality of the generated WebP image, 0-100.
+    The quality of the generated WebP image, "auto" or 0-100. Defaults to "auto"
+
+max-quality (optional):
+    The maximum quality. Only relevant when quality is set to "auto"
+
+default-quality (optional):
+    Fallback value for quality, if it isn't possible to detect quality of jpeg. Only relevant when quality is set to "auto"
 
 metadata (optional):
     If set to "none", all metadata will be stripped
@@ -41,6 +47,13 @@ converters (optional):
     Use this pattern for targeting options of a converter, that are used multiple times. However, use the pattern above
     for targeting the first occurence. `n` stands for the nth occurence of that converter in the `converters` option.
     Example: `...&converters=cwebp,ewww,ewww,gd,ewww&ewww-key=xxx&ewww-2-key=yyy&ewww-3-key=zzz&gd-skip-pngs=1`
+
+[converter-id]-[option-name]-[2] (optional):
+    This is an alternative, and simpler pattern than the above, for providing fallback for a single converter.
+    If WebPOnDemand detects that such an option is provided (ie ewww-key-2=yyy), it will automatically insert an extra
+    converter into the array (immidiately after), configured with the options with the '-2' postfix.
+    Example: `...&converters=cwebp,ewww,gd&ewww-key=xxx&ewww-key-2=yyy`
+    - will result in converter order: cwebp, ewww (with key=xxx), ewww (with key=yyy), gd
 
 converters (optional):
     Comma-separated list of converters. Ie. "cwebp,gd".
@@ -68,17 +81,17 @@ fail:
    Possible values:
    - "original":        Serves the original image (source)
    - "404":             Serves a 404 header
-   - "text":            Serves the error message as plain text
-   - "error-as-image":  Serves the error message as an image
+   - "report":          Serves the error message as plain text
+   - "report-as-image":  Serves the error message as an image
 
 critical-fail:
-  Default:  "error-as-image"
+  Default:  "report-as-image"
   What to serve if conversion fails and source image is not available
 
   Possible values:
   - "404":             Serves a 404 header
-  - "text":            Serves the error message as plain text
-  - "error-as-image":  Serves the error message as an image
+  - "report":          Serves the error message as plain text
+  - "report-as-image":  Serves the error message as an image
 
 */
 
@@ -91,6 +104,45 @@ use WebPConvert\Converters\ConverterHelper;
 
 class WebPOnDemand
 {
+    private static function transformFallbackOptions($converters) {
+        foreach ($converters as $i => &$converter) {
+            $duplicateConverter = false;
+            foreach ($converter['options'] as $optionName => $optionValue) {
+                if (substr($optionName, -2) === '-2') {
+                    $duplicateConverter = true;
+                    break;
+                }
+            }
+            if ($duplicateConverter) {
+                $options2 = [];
+                foreach ($converter['options'] as $optionName => $optionValue) {
+                    if (substr($optionName, -2) === '-2') {
+                        $options2[substr($optionName, 0, -2)] = $optionValue;
+                        unset($converter['options'][$optionName]);
+                    }
+                }
+                array_splice($converters, $i+1, 0, [['converter' => $converter['converter'], 'options' => $options2]]);
+            }
+        }
+        return $converters;
+    }
+
+    private static function setOption(&$array, $parameterName, $optionName, $optionType)
+    {
+        if (!isset($_GET[$parameterName])) {
+            return;
+        }
+        switch ($optionType) {
+            case 'string':
+                //$options['converters'][$i]['options'][$optionName] = $_GET[$parameterName];
+                $array[$optionName] = $_GET[$parameterName];
+            break;
+            case 'boolean':
+                //$options['converters'][$i]['options'][$optionName] = ($_GET[$parameterName] == '1');
+                $array[$optionName] = ($_GET[$parameterName] == '1');
+            break;
+        }
+    }
     public static function serve($root)
     {
 
@@ -112,7 +164,26 @@ class WebPOnDemand
 
         // quality
         if (isset($_GET['quality'])) {
-            $options['quality'] = $_GET['quality'];
+            if ($_GET['quality'] == 'auto') {
+                $options['quality'] = 'auto';
+            } else {
+                $options['quality'] = intval($_GET['quality']);
+            }
+        }
+
+        // max-quality
+        if (isset($_GET['max-quality'])) {
+            $options['max-quality'] = intval($_GET['max-quality']);
+        }
+
+        // default-quality
+        if (isset($_GET['default-quality'])) {
+            $options['default-quality'] = intval($_GET['default-quality']);
+        }
+
+        // method
+        if (isset($_GET['method'])) {
+            $options['method'] = $_GET['method'];
         }
 
         // metadata
@@ -148,57 +219,29 @@ class WebPOnDemand
             else {
                 $counts[$converter]++;
             }
-            $availOptions = [];
-            switch ($converter) {
-                case 'ewww':
-                    $availOptions = [
-                        'key' => 'string-sensitive',
-                    ];
-                    break;
-                case 'gd':
-                    $availOptions = [
-                        'skip-pngs' => 'boolean',
-                    ];
-                    break;
-                case 'cwebp':
-                    $availOptions = [
-                        'use-nice' => 'boolean',
-                    ];
-                    break;
-                case 'wpc':
-                    $availOptions = [
-                        'url' => 'string-sensitive',
-                        'secret' => 'string-sensitive',
-                    ];
-                    break;
 
-            }
-            print_r($availOptions);
-            echo '<br>';
+            $className = ConverterHelper::getClassNameOfConverter($converter);
+            $availOptions = array_column($className::$extraOptions, 'type', 'name');
+            //print_r($availOptions);
+
             foreach ($availOptions as $optionName => $optionType) {
                 $parameterName = $converter . (($counts[$converter] > 1 ? '-' . $counts[$converter] : '')) . '-' . $optionName;
-                switch ($optionType) {
-                    case 'string':
-                    case 'string-sensitive':
-                        if (isset($_GET[$parameterName])) {
-                            //echo $parameterName . ':' . $_GET[$parameterName] . '<br>';
-                            $options['converters'][$i]['options'][$optionName] = $_GET[$parameterName];
-                        }
-                        break;
-                    case 'boolean':
-                        if (isset($_GET[$parameterName])) {
-                            $options['converters'][$i]['options'][$optionName] = ($_GET[$parameterName] == '1');
-                        }
-                        break;
-                }
+
+                self::setOption($options['converters'][$i]['options'], $parameterName, $optionName, $optionType);
+                self::setOption($options['converters'][$i]['options'], $parameterName . '-2', $optionName . '-2', $optionType);
+
             }
         }
 
+        // transform options with '-2' postfix into new converters
+        $options['converters'] = self::transformFallbackOptions($options['converters']);
+
+        //echo '<pre>' . print_r($options, true) . '</pre>';
         // Failure actions
         $failCodes = [
             "original" => WebPConvertAndServe::$ORIGINAL,
             "404" => WebPConvertAndServe::$HTTP_404,
-            "error-as-image" => WebPConvertAndServe::$REPORT_AS_IMAGE,
+            "report-as-image" => WebPConvertAndServe::$REPORT_AS_IMAGE,
             "report" => WebPConvertAndServe::$REPORT,
         ];
 
@@ -217,14 +260,16 @@ class WebPOnDemand
         if (!$debug) {
             return WebPConvertAndServe::convertAndServeImage($source, $destination, $options, $fail, $criticalFail);
         } else {
+
+            // TODO
+            // As we do not want to leak api keys, I have commented out the following.
+            /*
             echo 'GET parameters:<br>';
-            // TODO!!!
-            // Do not leak api keys!
-            // Right now, you can see all options, including api keys, by appending "?debug" after an image URL!
             foreach ($_GET as $key => $value) {
                 echo '<i>' . $key . '</i>: ' . htmlspecialchars($value) . '<br>';
             }
             echo '<br>';
+            */
             //echo $_SERVER['DOCUMENT_ROOT'];
             WebPConvertAndServe::convertAndReport($source, $destination, $options);
             return 1;
