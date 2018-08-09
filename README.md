@@ -1,10 +1,18 @@
 # WebP on demand
 
-This is a solution for serving auto-generated WebP images instead of JPEG/PNG to browsers that supports WebP (Google Chrome, that is). It works by `.htaccess magic` coupled with an image converter (using *NGINX*? &ndash; try looking [here](https://github.com/S1SYPHOS/kirby-webp#nginx)). Basically, JPEGS and PNGS are routed to the image converter, unless it has already converted the image. In that case, it is routed directly to the converted image.
+This is a solution for automatically serving WebP images instead of jpeg/pngs for browsers that supports WebP (Google Chrome, that is).
 
-The image converter is able to use several methods to convert the image (`imagick`, `gd` directly calling `cwebp` binary or connecting to ewww image optimizer cloud service). Read more on its [project page](https://github.com/rosell-dk/webp-convert).
+Once set up, it will automatically convert images, no matter how they are referenced. It for example also works on images referenced in CSS. As the solution does not require any change in the HTML, it can easily be integrated into any website / framework (A Wordpress adaptation was recently published on [wordpress.org](https://wordpress.org/plugins/webp-express/) - its also on [github](https://github.com/rosell-dk/webp-express))
 
-A cool thing about this solution is that it works on all images, no matter how they are referenced. It for example also works on images referenced in CSS. Also, it does not require any change in the HTML. So it can easily be integrated into any framework.
+
+WebP on demand consists of two parts.
+
+- *The redirect rules* detects whether a requested image has already been converted. If so, it redirects it to the converted image. If not, it redirects it to the *image converter*
+
+- *The image converter* converts, saves and serves the image. We are using [webp-convert-and-serve](https://github.com/rosell-dk/webp-convert-and-serve) library for this.
+
+The redirect rules are written for Apache. They do not work on *LiteSpeed* servers (even though LiteSpeed claims compliance). I am currently working on LiteSpeed compliance. If you are on *NGINX*, try looking [here](https://github.com/S1SYPHOS/kirby-webp#nginx)
+
 
 ## Installation
 
@@ -17,9 +25,34 @@ A cool thing about this solution is that it works on all images, no matter how t
 - Test that the converter is working. Place an image in same folder as `webp-on-demand.php`. And then point your browser to `http://your-domain.com/your-folder/webp-on-demand.php?source=your-image.jpg&debug` in your browser. The debug parameter causes the script to return text instead of the converted image.
 
 #### 4. Get the `.htaccess` file up and running
-1. Decide how you wish the converted files to be organized. You must choose between 1) having them placed in the same folder as the source file or 2) having them all placed in their own common folder.
-- Create a `.htaccess` file in the same folder as `webp-on-demand` and copy the content of one of the supplied `.htaccess.example` files into it. If you want the converted files to be placed in the same folder as the source file, go for  `.htaccess.example1`. If you want the converted files to be placed in their own common folder, go for `.htaccess.example2a` or `.htaccess.example2b`. Choose the "a" version, if you have placed `webp-on-demand.php` in the root. Choose the "b" version, if you choose "b", you will need to do a search/replace for "your-folder". And don't forget to read the comments.
-- Test that the `.htaccess` is routing your image to the image converter by pointing your browser to `http://your-domain.com/your-folder/webp-on-demand.php?your-image.jpg&debug`. This is possible, because the `.htaccess` is set up to forward the querystring. So all options available for the script can be passed this way. You could for example use this to set higher quality on selected images.
+
+##### 4.1 Choose the appropiate .htaccess example file
+There are multiple .htaccess example files to choose from, depending on your needs. So first, you must decide where you want the converted files to reside. You have two options:
+
+*Same as source file*
+Puts the converted files in the same folder as the original. The converted files gets the same name as the original plus ".webp". Ie. "image.jpg" will be converted into "image.jpg.webp"
+
+*In a common folder*
+Puts the converted files into a folder dedicated for the converted files. The converted files will then be organized into the same structure as the original. If you for example set the folder to be "webp-cache", then */images/2017/fun-at-the-hotel.jpg* will be converted into */webp-cache/images/2017/fun-at-the-hotel.jpg*
+
+Now, choose the appropiate example file, using this table:
+
+| Location of converted files | Location of webp-on-demand.php | .htaccess to copy from
+| -- | -- | -- |
+| Same as source file    |  webroot  |  `.htaccess.example1a` |
+| Same as source file    |  subfolder to webroot  |  `.htaccess.example1b` |
+| In a common folder     |  webroot  |  `.htaccess.example2a`  |
+| In a common folder     |  subfolder to webroot  |  `.htaccess.example2b`  |
+
+##### 4.2 Copy content from the .htaccess example file
+- Create a .htaccess file in the *same folder* as webp-on-demand.php
+- Copy the content of the appropiate example file
+
+##### 4.2 For b-versions, substitute folder name
+If you have choosen one of the "b"-versions, you will have to enter the path in the .htaccess (do a search/replace for "your-folder"). Don't forget to read the comments in the .htaccess.
+
+##### 4.3 Test the routing
+3) Test that the `.htaccess` is routing your image to the image converter by pointing your browser to `http://your-domain.com/your-folder/your-image.jpg&debug`. If you should a textual report, the redirect is working. If you see an image, it is not working. (the `.htaccess` rules are set up to forward the querystring, so - if things are working correctly - webp-on-demand.php will be called with "?debug", and therefor produce a textual report)
 
 #### 5. Use it!
 You do not have to make any changes to your existing HTML or CSS. The routing and conversion are now done automatically. To confirm that it works:
@@ -60,20 +93,6 @@ You add options to `webp-on-demand.php` directly in the `.htaccess`. You can how
 | *debug* (optional)             | If set, a report will be served (as text) instead of an image |
 | *fail* (optional)              | What to serve if conversion fails. Default is  "original". Possible values: "original", "404", "report", "report-as-image". See [WebPConvertAndServe](https://github.com/rosell-dk/webp-convert-and-serve#api) docs|
 | *critical-fail* (optional)              | What to serve if conversion fails and source image is not availabl Default is  "error-as-image". Possible values: "original", "404", "report", "report-as-image". See [WebPConvertAndServe](https://github.com/rosell-dk/webp-convert-and-serve#api) docs |
-
-
-## The .htacesss example files
-
-Three different example files are supplied:
-
-`.htaccess.example1`
-Puts the converted files in the same folder as the original. The converted files gets the same name as the original plus ".webp". Ie. "image.jpg" will be converted into "image.jpg.webp"
-
-`.htaccess.example2a`
-Puts the converted files into a folder dedicated for the converted files. The converted files will then be organized into the same structure as the original. If you for example set the folder to be "webp-cache", then "/images/2017/fun-at-the-hotel.jpg" will be converted into "/webp-cache/images/2017/fun-at-the-hotel.jpg"
-
-`.htaccess.example2b`
-Same as 2a, but for the case where `.htaccess` isn't in webroot, but in a subfolder
 
 
 ## Configuring the converter
