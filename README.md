@@ -52,7 +52,7 @@ Now, choose the appropiate example file, using this table:
 If you have choosen one of the "b"-versions, you will have to enter the path in the .htaccess (do a search/replace for "your-folder"). Don't forget to read the comments in the .htaccess.
 
 ##### 4.3 Test the routing
-3) Test that the `.htaccess` is routing your image to the image converter by pointing your browser to `http://your-domain.com/your-folder/your-image.jpg&debug`. If you should a textual report, the redirect is working. If you see an image, it is not working. (the `.htaccess` rules are set up to forward the querystring, so - if things are working correctly - webp-on-demand.php will be called with "?debug", and therefor produce a textual report)
+Test that the `.htaccess` is routing your image to the image converter by pointing your browser to `http://your-domain.com/your-folder/your-image.jpg&debug`. If you should a textual report, the redirect is working. If you see an image, it is not working. (the `.htaccess` rules are set up to forward the querystring, so - if things are working correctly - webp-on-demand.php will be called with "?debug", and therefor produce a textual report)
 
 #### 5. Use it!
 You do not have to make any changes to your existing HTML or CSS. The routing and conversion are now done automatically. To confirm that it works:
