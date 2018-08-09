@@ -4,14 +4,16 @@ This is a solution for automatically serving WebP images instead of jpeg/pngs fo
 
 Once set up, it will automatically convert images, no matter how they are referenced. It for example also works on images referenced in CSS. As the solution does not require any change in the HTML, it can easily be integrated into any website / framework (A Wordpress adaptation was recently published on [wordpress.org](https://wordpress.org/plugins/webp-express/) - its also on [github](https://github.com/rosell-dk/webp-express))
 
-
 WebP on demand consists of two parts.
 
 - *The redirect rules* detects whether a requested image has already been converted. If so, it redirects it to the converted image. If not, it redirects it to the *image converter*
 
 - *The image converter* converts, saves and serves the image. We are using [webp-convert-and-serve](https://github.com/rosell-dk/webp-convert-and-serve) library for this.
 
-The redirect rules are written for Apache. They do not work on *LiteSpeed* servers (even though LiteSpeed claims compliance). I am currently working on LiteSpeed compliance. If you are on *NGINX*, try looking [here](https://github.com/S1SYPHOS/kirby-webp#nginx)
+** New feature: LiteSpeed support **
+The redirect rules are written for Apache. They did not work on *LiteSpeed* servers (even though LiteSpeed claims compliance). A little tweaking however solved the problem. It is available in master, and will be available in the upcoming 0.3 release.
+
+This project currently only supports Apache and LiteSpeed. In time, we may add redirect rules for NGINX and/or Windows Server. If you don't want to wait for NGINX support, there are NGINX rules to get you started [here](https://github.com/S1SYPHOS/kirby-webp#nginx).
 
 
 ## Installation
@@ -40,7 +42,7 @@ Now, choose the appropriate example file, using this table:
 | Location of converted files | Location of webp-on-demand.php | .htaccess to copy from
 | -- | -- | -- |
 | Same as source file    |  webroot  |  `.htaccess.example1a` |
-| Same as source file    |  subfolder to webroot  |  `.htaccess.example1b` |
+| Same as source file    |  subfolder to webroot  |  `.htaccess.example1b` (Note: not LiteSpeed compatible yet) |
 | In a separate folder     |  webroot  |  `.htaccess.example2a`  |
 | In a separate folder     |  subfolder to webroot  |  `.htaccess.example2b`  |
 
