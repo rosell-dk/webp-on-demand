@@ -35,14 +35,14 @@ Puts the converted files in the same folder as the original. The converted files
 *In a common folder*
 Puts the converted files into a folder dedicated for the converted files. The converted files will then be organized into the same structure as the original. If you for example set the folder to be "webp-cache", then */images/2017/fun-at-the-hotel.jpg* will be converted into */webp-cache/images/2017/fun-at-the-hotel.jpg*
 
-Now, choose the appropiate example file, using this table:
+Now, choose the appropriate example file, using this table:
 
 | Location of converted files | Location of webp-on-demand.php | .htaccess to copy from
 | -- | -- | -- |
 | Same as source file    |  webroot  |  `.htaccess.example1a` |
 | Same as source file    |  subfolder to webroot  |  `.htaccess.example1b` |
-| In a common folder     |  webroot  |  `.htaccess.example2a`  |
-| In a common folder     |  subfolder to webroot  |  `.htaccess.example2b`  |
+| In a separate folder     |  webroot  |  `.htaccess.example2a`  |
+| In a separate folder     |  subfolder to webroot  |  `.htaccess.example2b`  |
 
 ##### 4.2 Copy content from the .htaccess example file
 - Create a .htaccess file in the *same folder* as webp-on-demand.php
@@ -130,87 +130,108 @@ The .htaccess takes care of setting the "Vary" HTTP header to "Accept" when rout
 3. `WebPOnDemand::serve` routes the options to  [WebPConvertAndServe](https://github.com/rosell-dk/webp-convert-and-serve)
 4. `WebPConvertAndServe` in turn delegates the conversion to [WebPConvert](https://github.com/rosell-dk/webp-convert)
 
-### The Apache configuration files
+### The Apache configuration files in details
 
-Below follows some detailed explanation of the .htaccess files. *Note however that these needs updating*
+Lets make a walk-through of .htaccess-example1a. The other files are very similar, so walking through one of them should suffice.
 
-### With location set to same folder as original (option 1)
-When the destination of the converted files is set to be the same as the originals, the .htaccess contains the following code (comments removed)
-
+The rules read:
 ```
 <IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteBase /
 
-  RewriteCond %{HTTP_ACCEPT} image/webp
-  RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=accept:1]
+    RewriteEngine On
 
-  RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
-  RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f
-  RewriteCond %{QUERY_STRING} (.*)
-  RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=85&preferred-converters=imagick,cwebp,gd&serve-image=yes&%1 [NC]
+    # Redirect to existing converted image (under appropriate circumstances)
+    RewriteCond %{HTTP_ACCEPT} image/webp
+    RewriteCond %{QUERY_STRING} !((^reconvert.*)|(^debug.*))
+    RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp -f
+    RewriteRule ^\/?(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=accept:1,QSD]
+
+    # Redirect to converter (under appropriate circumstances)
+    RewriteCond %{HTTP_ACCEPT} image/webp
+    RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
+    RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f
+    RewriteCond %{QUERY_STRING} (.*)    # Always true. Enables us to grab the query string in the following rule
+    RewriteRule ^\/?(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=.&quality=80&fail=original&critical-fail=report&%1 [NC,E=accept:1]
 
 </IfModule>
+
+# Making CDN caching possible.
+# The effect is that the CDN will cache both the webp image and the jpeg/png image and return the proper image to the
+# proper clients (for this to work, make sure to set up CDN to forward the "Accept" header)
 <IfModule mod_headers.c>
     Header append Vary Accept env=REDIRECT_accept
 </IfModule>
-AddType image/webp .webp
 ```
 
-Lets take it line by line, skipping the first couple of lines:
+First thing to notice is that the code is divided in two blocks. The first redirects to an existing converted image (under appropriate conditions), the second redirects to the image converter (under appropriate conditions)
 
-```RewriteCond %{HTTP_ACCEPT} image/webp```\
-This condition makes sure that the following rule only applies when the client has sent a HTTP_ACCEPT header containing "image/webp". In other words: The next rule only activates if the browser accepts WebP images.
+Also, the blocks only kick in, if the browser supports webp. And there are also lines ensuring that if the image is called with a "debug" or "reconvert" parameter, it will redirect to the converter, rather than to an existing image. The two set of conditions are created such that they are mutual exclusive.
 
-```RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=accept:1]```\
-This line rewrites any request that ends with ".jpg", ".jpeg" or ".png" (case insensitive). The target is set to the same as source, but with ".webp" appended to it. Also, MIME type of the response is set to "image/webp" (my tests shows that Apache gets the MIME type right without this, but better safe than sorry - it might be needed in other versions of Apache). The E flag part sets the environment variable "accept" to 1. This is used further down in the .htaccess to conditionally append a Vary header. So setting this variable means that the Vary header will be appended if the rule is triggered. The NC flag makes the match case insensitive.
+Lets break it down.
 
-```RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]```\
-This line tests if the query string starts with "reconvert" or "debug". If it does, the rule that passes the request to the image converter will have green light to go. So appending "&reconvert" to an image url will force a new convertion even though the image is already converted. And appending "&debug" also bypasses the file check, and actually also results in a reconversion - but with text output instead of the image.
+#### Redirecting to existing image
 
-```RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f```\
-This line adds the condition that the image is not already converted. The $1 and $2 refers to matches of the following rule. The condition will only match files ending with ".jpeg.webp", "jpg.webp" or "png.webp". As a webp is thus requested, it makes sense to have the rule apply even to browsers not accepting "image/webp".
-
-```RewriteCond %{QUERY_STRING} (.*)```\
-This line enables us to use the query string in the following rule, as it will be available as "%1". The condition is always met.
-
-```RewriteRule ^(.*)\.(jpe?g|png)\.(webp)$ webp-convert/webp-convert.php?source=$1.$2&quality=85&preferred-converters=imagick,cwebp,gd&serve-image=yes&%1 [NC]```\
-This line rewrites any request that ends with ".jpg", ".jpeg" or ".png" to point to the image converter script. The php script get passed a "source" parameter, which is the file path of the source image. The script also accepts a destination root. It is not set here, which means the script will save the the file in the same folder as the source. The %1 is the original query string (it refers to the match of the preceding condition). This enables overiding the converter options set here. For example appending "&debug&preferred-converters=gd" can be used to test the gd converter. Or "&reconvert&quality=100" can be appended in order to reconvert the image using better quality.
-
-```Header append Vary Accept env=REDIRECT_accept```\
-This line appends a response header containing: "Vary: Accept", but only when the environment variable "accept" is set by the "REDIRECT" module.
-
-
-### With location set to specific folder (option 2)
-When the destination of the converted files is set to be a specific folder as the originals, the core functionality lies in the following code:
-
+First block reads:
 ```
-RewriteCond %{HTTP_ACCEPT} image/webp
-RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
-RewriteCond %{DOCUMENT_ROOT}/webp-cache/$1.$2.webp !-f
-RewriteCond %{QUERY_STRING} (.*)
-RewriteRule ^(.*)\.(jpe?g|png)$ webp-convert/webp-convert.php?source=$1.$2&quality=80&destination-root=webp-cache&preferred-converters=imagick,cwebp&serve-image=yes&%1 [NC,T=image/webp,E=accept:1]
-
+# Redirect to existing converted image (under appropriate circumstances)
 RewriteCond %{HTTP_ACCEPT} image/webp
 RewriteCond %{QUERY_STRING} !((^reconvert.*)|(^debug.*))
-RewriteCond %{DOCUMENT_ROOT}/webp-cache/$1.$2.webp -f
-RewriteRule ^(.*)\.(jpe?g|png)$ /webp-cache/$1.$2.webp [NC,T=image/webp,E=accept:1,QSD]
+RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp -f
+RewriteRule ^\/?(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=accept:1,QSD]
 ```
 
-The code is divided in two blocks. The first block takes care of delegating the request to the image converter under a set of conditions. The other block takes care of rewriting the url to point to an existing image under another set of conditions. The two set of conditions are mutual exclusive.
+*Lets take it line by line:*
 
-You should know that in *mod_rewrite*, OR has higher precedence than AND [[ref](https://stackoverflow.com/questions/922399/how-to-use-and-or-for-rewritecond-on-apache)]. The first set of conditions thus reads:
+`RewriteCond %{HTTP_ACCEPT} image/webp`
+This makes sure that the following rule only kicks in when the browser supports webp images. Browsers supporting webp images are obliged to sending a HTTP_ACCEPT header containing "image/webp", which we test for here.
 
-If *Browser accepts webp images* AND (*Query string begins with "reconvert" or "debug"* OR *There is no existing converted image*) AND *Query string is empty or not*
+`RewriteCond %{QUERY_STRING} !((^reconvert.*)|(^debug.*))`
+This makes sure that the query string does not begin with "reconvert" or "debug" (we want those requests to be redirected to the converter, even when a converted file exists)
 
-The last condition is always true. It is there to make the query string available to the following rule.
+`RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp -f`
+This makes sure there is an existing converted image. The $1 and $2 refers to matches of the following rule. You may think it is weird that we can reference matches in a rule not run yet, in a condition to that very rule. I agree - mod_rewrite is a complex beast.
 
-The other set of conditions reads;
-If *Browser accepts webp images* AND *Query string does not begin with "reconvert" or "debug"* AND *There is an existing converted image*
+`RewriteRule ^\/?(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=accept:1,QSD]`
+Rewrites any request that ends with ".jpg", ".jpeg" or ".png" (case insensitive). The first parentheses makes grabs the file path, which can then be referenced with $1. The second parentheses grabs the file extension into $2. These referenced are used in the preceding condition as well as in the rule itself. The effect of the rewrite is that the target is set to the same as source, but with ".webp" appended to it. Also, MIME type of the response is set to "image/webp" (not necessary, though). The E flag part sets the environment variable "accept" to 1. This is used further down in the .htaccess to conditionally append a Vary header. So setting this variable means that the Vary header will be appended if the rule is triggered. The NC flag makes the match case insensitive. The QSD flag tells Apache to strip the query string. The "\/?" is added to the beginning in order to support LiteSpeed web servers.
 
-Otherwise it is the same kind of stuff that is going on as in option 1 - which is described in the preceding section. Oh, there is the QSD flag. It tells Apache to strip the query string.
+#### Redirecting to image converter
+Second block redirects to *the image converter* (under appropiate circumstances)
 
+```
+# Redirect to converter (under appropriate circumstances)
+RewriteCond %{HTTP_ACCEPT} image/webp
+RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
+RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f
+RewriteCond %{QUERY_STRING} (.*)    # Always true. Enables us to grab the query string in the following rule
+RewriteRule ^\/?(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=.&quality=80&fail=original&critical-fail=report&%1 [NC,E=accept:1]
+```
 
+*Lets take it line by line*:
+`RewriteCond %{HTTP_ACCEPT} image/webp`
+We have covered this...
+
+`RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]`
+If query string contains a "reconvert" or "debug", the block will be activated, even if there exists a converted file. Notice the "[OR]". Know that OR has higher precedence than AND [[ref](https://stackoverflow.com/questions/922399/how-to-use-and-or-for-rewritecond-on-apache)].
+
+`RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f`
+Make sure there aren't an existing image (OR above condition)
+
+`RewriteCond %{QUERY_STRING} (.*)`
+This is always true. The condition is there to enable us to pass on the querystring from image request to the converter in the next rule, where it will be accessible as "%1"
+
+`RewriteRule ^\/?(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=.&quality=80&fail=original&critical-fail=report&%1 [NC,E=accept:1]`
+
+This line rewrites any request that ends with ".jpg", ".jpeg" or ".png" (case insensitive) to the image converter. You can remove "|png" from the line, if you do not want to convert png files. The flags are the same as in the other rewrite, except that "T=image/webp" has been removed. It was originally there, but I removed it in order for it to work in LiteSpeed. webp-on-demand.php sets a Content Type header, so it was not needed in the first place. Well, actually, webp-on-demand.php may set content type to text/html (when returning error report), or image/gif, when returning error report as image - so setting it to something different here, is asking for trouble. The "\/?" in the beginning was also added for LiteSpeed support. %1 prints the query string fetched in the preceding condition. This enables overiding the converter options set here. For example appending "&debug&preferred-converters=gd" to an url that points to an image can be used to test the gd converter. Or "&reconvert&quality=100" can be appended in order to reconvert the image using extreme quality.
+
+#### Dealing with CDN
+
+```
+<IfModule mod_headers.c>
+    Header append Vary Accept env=REDIRECT_accept
+</IfModule>
+```
+
+This line appends a response header containing: "Vary: Accept", but only when the environment variable "accept" is set above. env="REDIRECT_accept" instructs mod_headers only to append the header, when the "accept" environment variable is set by the "REDIRECT" module.
 
 
 ## A similar project

@@ -1,10 +1,4 @@
-# webp-on-demand ("same location"-variation)
-# ------------------------------------------
-# Use this "same location" example, if you want the generated files to be placed in the same folder as the original
-# image, Ie the webp image corresponding to "/images/logo.jpg" will become "/images/logo.jpg.webp"
-
-# In this example, the .htaccess isn't in webroot, but in a folder named 'your-folder'
-# (replace accordingly)
+# TODO: This file needs to be updated. It must be somewhere between 1a and 2b
 
 <IfModule mod_rewrite.c>
 
@@ -13,7 +7,7 @@
     # RewriteBase /
 
     RewriteCond %{HTTP_ACCEPT} image/webp
-    RewriteRule ^(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=accept:1]
+    RewriteRule ^\/?(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=accept:1]
 
     RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
 
@@ -22,7 +16,7 @@
     RewriteCond %{QUERY_STRING} (.*)
 
     # If you do not want png images to be converted, simply remove "|png" from the code
-    RewriteRule ^(.*)\.(jpe?g|png)$ /your-folder/webp-on-demand.php?source=$1.$2&destination-root=webp-cache&quality=80&fail=original&critical-fail=report&%1 [NC,T=image/webp,E=accept:1]
+    RewriteRule ^\/?(.*)\.(jpe?g|png)$ /your-folder/webp-on-demand.php?source=$1.$2&destination-root=webp-cache&quality=80&fail=original&critical-fail=report&%1 [NC,T=image/webp,E=accept:1]
 
 </IfModule>
 
