@@ -42,11 +42,11 @@
     # Make CDN caching possible.
     # The effect is that the CDN will cache both the webp image and the jpeg/png image and return the proper
     # image to the proper clients (for this to work, make sure to set up CDN to forward the "Accept" header)
-    Header append Vary Accept env=REDIRECT_WEBPACCEPT
+    Header append Vary Accept env=WEBPACCEPT
 
     # Add headers for debugging
-    Header append X-WebP-On-Demand "Routed to existing converted image" env=REDIRECT_WEBPEXISTING
-    Header append X-WebP-On-Demand "Routed to image converter" env=REDIRECT_WEBPNEW
+    Header append X-WebP-On-Demand "Routed to existing converted image" env=WEBPEXISTING
+    Header append X-WebP-On-Demand "Routed to image converter" env=WEBPNEW
 </IfModule>
 
 AddType image/webp .webp
