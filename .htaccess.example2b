@@ -34,7 +34,13 @@
 </IfModule>
 
 <IfModule mod_headers.c>
-    # Making CDN caching possible.
+    # Apache appends "REDIRECT_" in front of the environment variables, but LiteSpeed does not.
+    # These next three lines are for Apache, in order to set environment variables without "REDIRECT_"
+    SetEnvIf REDIRECT_WEBPACCEPT 1 WEBPACCEPT=1
+    SetEnvIf REDIRECT_WEBPEXISTING 1 WEBPEXISTING=1
+    SetEnvIf REDIRECT_WEBPNEW 1 WEBPNEW=1
+
+    # Make CDN caching possible.
     # The effect is that the CDN will cache both the webp image and the jpeg/png image and return the proper
     # image to the proper clients (for this to work, make sure to set up CDN to forward the "Accept" header)
     Header append Vary Accept env=REDIRECT_WEBPACCEPT
