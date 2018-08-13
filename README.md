@@ -56,6 +56,17 @@ If you have choosen one of the "b"-versions, you will have to enter the path in 
 ##### 4.3 Test the routing
 Test that the `.htaccess` is routing your image to the image converter by pointing your browser to `http://your-domain.com/your-folder/your-image.jpg&debug`. If you should a textual report, the redirect is working. If you see an image, it is not working. (the `.htaccess` rules are set up to forward the querystring, so - if things are working correctly - webp-on-demand.php will be called with "?debug", and therefor produce a textual report)
 
+In order to test that a image is not being reconverted every time it is requested, check the Response headers of the image. There should be a "X-WebP-Express" header. It should say Routed to image converter" the first time, but "Routed to existing converted image" on subsequent requests.
+To view response headers in Google Chrome do the following:
+
+- Open the image in Google Chrome (point it to `http://your-domain.com/your-folder/your-image.jpg`)
+- Right-click the image and choose "Inspect"
+- Click the "Network" tab
+- Reload the page
+- Click the image in the list, you should now see a list of headers
+
+
+
 #### 5. Use it!
 You do not have to make any changes to your existing HTML or CSS. The routing and conversion are now done automatically. To confirm that it works:
 
