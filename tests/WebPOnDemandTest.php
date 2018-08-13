@@ -15,24 +15,73 @@ use PHPUnit\Framework\TestCase;
 
 class WebPOnDemandTest extends TestCase
 {
-    public function testConvertWithNoConverters()
+
+    public function testCriticalFailureOriginal()
     {
-      /*
-      broken. has no time to fix right now...
-      
-        $this->assertEquals($_GET, []);
 
+        $_GET = [
+            'source' => 'non-existing.jpg',
+            'converters' => 'cwebp',
+            'fail' => '404',
+            'critical-fail' => 'original'
+        ];
 
-        $_GET['source'] = 'test.jpg';
-        //$_GET['converters'] = 'nonexistant';
-        $_GET['fail'] = '404';
-        $_GET['critical-fail'] = '404';
+        ob_start();
+        $result = WebPOnDemand::serve(__DIR__);
+        $output = ob_get_contents();
+
+        $this->assertEquals($result, WebPConvertAndServe::$ORIGINAL);
+    }
+
+    public function testCriticalFailure404()
+    {
+
+        $_GET = [
+            'source' => 'non-existing.jpg',
+            'converters' => 'cwebp',
+            'fail' => 'original',
+            'critical-fail' => '404'
+        ];
 
         ob_start();
         $result = WebPOnDemand::serve(__DIR__);
         $output = ob_get_contents();
 
         $this->assertEquals($result, WebPConvertAndServe::$HTTP_404);
-        */
     }
+
+    public function testCriticalFailureReportAsImage()
+    {
+
+        $_GET = [
+            'source' => 'non-existing.jpg',
+            'converters' => 'cwebp',
+            'fail' => 'original',
+            'critical-fail' => 'report-as-image'
+        ];
+
+        ob_start();
+        $result = WebPOnDemand::serve(__DIR__);
+        $output = ob_get_contents();
+
+        $this->assertEquals($result, WebPConvertAndServe::$REPORT_AS_IMAGE);
+    }
+
+    public function testCriticalFailureReport()
+    {
+
+        $_GET = [
+            'source' => 'non-existing.jpg',
+            'converters' => 'cwebp',
+            'fail' => 'original',
+            'critical-fail' => 'report'
+        ];
+
+        ob_start();
+        $result = WebPOnDemand::serve(__DIR__);
+        $output = ob_get_contents();
+
+        $this->assertEquals($result, WebPConvertAndServe::$REPORT);
+    }
+
 }
