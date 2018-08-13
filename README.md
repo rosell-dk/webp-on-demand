@@ -146,22 +146,26 @@ The rules read:
     RewriteCond %{HTTP_ACCEPT} image/webp
     RewriteCond %{QUERY_STRING} !((^reconvert.*)|(^debug.*))
     RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp -f
-    RewriteRule ^\/?(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=accept:1,QSD]
+    RewriteRule ^\/?(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=WEBPACCEPT:1,E=WEBPEXISTING:1,QSD]
 
     # Redirect to converter (under appropriate circumstances)
     RewriteCond %{HTTP_ACCEPT} image/webp
     RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
     RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f
     RewriteCond %{QUERY_STRING} (.*)    # Always true. Enables us to grab the query string in the following rule
-    RewriteRule ^\/?(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=.&quality=80&fail=original&critical-fail=report&%1 [NC,E=accept:1]
+    RewriteRule ^\/?(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=.&quality=80&fail=original&critical-fail=report&%1 [NC,E=WEBPACCEPT:1,E=WEBPNEW:1]
 
 </IfModule>
 
-# Making CDN caching possible.
-# The effect is that the CDN will cache both the webp image and the jpeg/png image and return the proper image to the
-# proper clients (for this to work, make sure to set up CDN to forward the "Accept" header)
 <IfModule mod_headers.c>
-    Header append Vary Accept env=REDIRECT_accept
+    # Making CDN caching possible.
+    # The effect is that the CDN will cache both the webp image and the jpeg/png image and return the proper
+    # image to the proper clients (for this to work, make sure to set up CDN to forward the "Accept" header)
+    Header append Vary Accept env=REDIRECT_WEBPACCEPT
+
+    # Add headers for debugging
+    Header append X-WebP-On-Demand "Routed to existing converted image" env=REDIRECT_WEBPEXISTING
+    Header append X-WebP-On-Demand "Routed to image converter" env=REDIRECT_WEBPNEW
 </IfModule>
 ```
 
@@ -179,7 +183,7 @@ First block reads:
 RewriteCond %{HTTP_ACCEPT} image/webp
 RewriteCond %{QUERY_STRING} !((^reconvert.*)|(^debug.*))
 RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp -f
-RewriteRule ^\/?(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=accept:1,QSD]
+RewriteRule ^\/?(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=WEBPACCEPT:1,E=WEBPEXISTING:1,QSD]
 ```
 
 *Lets take it line by line:*
@@ -193,8 +197,8 @@ This makes sure that the query string does not begin with "reconvert" or "debug"
 `RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp -f`
 This makes sure there is an existing converted image. The $1 and $2 refers to matches of the following rule. You may think it is weird that we can reference matches in a rule not run yet, in a condition to that very rule. I agree - mod_rewrite is a complex beast.
 
-`RewriteRule ^\/?(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=accept:1,QSD]`
-Rewrites any request that ends with ".jpg", ".jpeg" or ".png" (case insensitive). The first parentheses makes grabs the file path, which can then be referenced with $1. The second parentheses grabs the file extension into $2. These referenced are used in the preceding condition as well as in the rule itself. The effect of the rewrite is that the target is set to the same as source, but with ".webp" appended to it. Also, MIME type of the response is set to "image/webp" (not necessary, though). The E flag part sets the environment variable "accept" to 1. This is used further down in the .htaccess to conditionally append a Vary header. So setting this variable means that the Vary header will be appended if the rule is triggered. The NC flag makes the match case insensitive. The QSD flag tells Apache to strip the query string. The "\/?" is added to the beginning in order to support LiteSpeed web servers.
+`RewriteRule ^\/?(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=WEBPACCEPT:1,E=WEBPEXISTING:1,QSD]`
+Rewrites any request that ends with ".jpg", ".jpeg" or ".png" (case insensitive). The first parentheses makes grabs the file path, which can then be referenced with $1. The second parentheses grabs the file extension into $2. These referenced are used in the preceding condition as well as in the rule itself. The effect of the rewrite is that the target is set to the same as source, but with ".webp" appended to it. Also, MIME type of the response is set to "image/webp" (not necessary, though). The first E flag part sets the environment variable "WEBPACCEPT" to 1. This is used further down in the .htaccess to conditionally append a Vary header. So setting this variable means that the Vary header will be appended if the rule is triggered. The second E sets the environment variable "WEBPEXISTING" to 1. This marks that the request was routed to an existing image and is used later to send a custom header X-WebP-On-Demand="Routed to existing converted image" (practical for debugging). The NC flag makes the match case insensitive. The QSD flag tells Apache to strip the query string. The "\/?" is added to the beginning in order to support LiteSpeed web servers.
 
 #### Redirecting to image converter
 Second block redirects to *the image converter* (under appropiate circumstances)
@@ -205,7 +209,7 @@ RewriteCond %{HTTP_ACCEPT} image/webp
 RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
 RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f
 RewriteCond %{QUERY_STRING} (.*)    # Always true. Enables us to grab the query string in the following rule
-RewriteRule ^\/?(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=.&quality=80&fail=original&critical-fail=report&%1 [NC,E=accept:1]
+RewriteRule ^\/?(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=.&quality=80&fail=original&critical-fail=report&%1 [NC,E=WEBPACCEPT:1,E=WEBPNEW:1]
 ```
 
 *Lets take it line by line*:
@@ -221,20 +225,31 @@ Make sure there aren't an existing image (OR above condition)
 `RewriteCond %{QUERY_STRING} (.*)`
 This is always true. The condition is there to enable us to pass on the querystring from image request to the converter in the next rule, where it will be accessible as "%1"
 
-`RewriteRule ^\/?(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=.&quality=80&fail=original&critical-fail=report&%1 [NC,E=accept:1]`
+`RewriteRule ^\/?(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=.&quality=80&fail=original&critical-fail=report&%1 [NC,E=WEBPACCEPT:1,E=WEBPNEW:1]`
 
-This line rewrites any request that ends with ".jpg", ".jpeg" or ".png" (case insensitive) to the image converter. You can remove "|png" from the line, if you do not want to convert png files. The flags are the same as in the other rewrite, except that "T=image/webp" has been removed. It was originally there, but I removed it in order for it to work in LiteSpeed. webp-on-demand.php sets a Content Type header, so it was not needed in the first place. Well, actually, webp-on-demand.php may set content type to text/html (when returning error report), or image/gif, when returning error report as image - so setting it to something different here, is asking for trouble. The "\/?" in the beginning was also added for LiteSpeed support. %1 prints the query string fetched in the preceding condition. This enables overiding the converter options set here. For example appending "&debug&preferred-converters=gd" to an url that points to an image can be used to test the gd converter. Or "&reconvert&quality=100" can be appended in order to reconvert the image using extreme quality.
+This line rewrites any request that ends with ".jpg", ".jpeg" or ".png" (case insensitive) to the image converter. You can remove "|png" from the line, if you do not want to convert png files. We have covered the NC flag and the E=WEBPACCEPT in the first block. Notice that we have no "T=image/webp" in this rewrite. It was originally there, but I removed it in order for it to work in LiteSpeed. webp-on-demand.php sets a Content Type header, so it was not needed in the first place. Well, actually, webp-on-demand.php may set content type to text/html (when returning error report), or image/gif, when returning error report as image - so setting it to something different here, is asking for trouble. The "\/?" in the beginning was also added for LiteSpeed support. %1 prints the query string fetched in the preceding condition. This enables overiding the converter options set here. For example appending "&debug&preferred-converters=gd" to an url that points to an image can be used to test the gd converter. Or "&reconvert&quality=100" can be appended in order to reconvert the image using extreme quality. The "E=WEBPNEW:1" flag sets the environment variable "WEBPNEW" to 1. This marks that the request was routed to an existing image and is used later to send a custom header X-WebP-On-Demand="Routed to image converter" (practical for debugging).
 
-#### Dealing with CDN
+#### Headers / dealing with CDN
 
+The final part of the .htaccess reads:
 ```
 <IfModule mod_headers.c>
-    Header append Vary Accept env=REDIRECT_accept
+    # Making CDN caching possible.
+    # The effect is that the CDN will cache both the webp image and the jpeg/png image and return the proper
+    # image to the proper clients (for this to work, make sure to set up CDN to forward the "Accept" header)
+    Header append Vary Accept env=REDIRECT_WEBPACCEPT
+
+    # Add headers for debugging
+    Header append X-WebP-On-Demand "Routed to existing converted image" env=REDIRECT_WEBPEXISTING
+    Header append X-WebP-On-Demand "Routed to image converter" env=REDIRECT_WEBPNEW
 </IfModule>
+
+AddType image/webp .webp
 ```
 
-This line appends a response header containing: "Vary: Accept", but only when the environment variable "accept" is set above. env="REDIRECT_accept" instructs mod_headers only to append the header, when the "accept" environment variable is set by the "REDIRECT" module.
+This first appends a response header containing: "Vary: Accept", but only when the environment variable "WEBPACCEPT" is set above. env="REDIRECT_WEBPACCEPT" instructs mod_headers only to append the header, when the "WEBPACCEPT" environment variable is set by the "REDIRECT" module (mod_rewrite).
 
+The two other lines sets headers useful for validating that the rules are working as expected.
 
 ## A similar project
 This project is very similar to [WebP realizer](https://github.com/rosell-dk/webp-realizer). *WebP realizer* assumes that the conditional part is in HTML, like this:

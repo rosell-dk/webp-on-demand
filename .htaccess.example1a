@@ -19,22 +19,26 @@
     RewriteCond %{HTTP_ACCEPT} image/webp
     RewriteCond %{QUERY_STRING} !((^reconvert.*)|(^debug.*))
     RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp -f
-    RewriteRule ^\/?(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=accept:1,QSD]
+    RewriteRule ^\/?(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=WEBPACCEPT:1,E=WEBPEXISTING:1,QSD]
 
     # Redirect to converter (under appropriate circumstances)
     RewriteCond %{HTTP_ACCEPT} image/webp
     RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
     RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f
     RewriteCond %{QUERY_STRING} (.*)    # Always true. Enables us to grab the query string in the following rule
-    RewriteRule ^\/?(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=.&quality=80&fail=original&critical-fail=report&%1 [NC,E=accept:1]
+    RewriteRule ^\/?(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=.&quality=80&fail=original&critical-fail=report&%1 [NC,E=WEBPACCEPT:1,E=WEBPNEW:1]
 
 </IfModule>
 
-# Making CDN caching possible.
-# The effect is that the CDN will cache both the webp image and the jpeg/png image and return the proper image to the
-# proper clients (for this to work, make sure to set up CDN to forward the "Accept" header)
 <IfModule mod_headers.c>
-    Header append Vary Accept env=REDIRECT_accept
+    # Making CDN caching possible.
+    # The effect is that the CDN will cache both the webp image and the jpeg/png image and return the proper
+    # image to the proper clients (for this to work, make sure to set up CDN to forward the "Accept" header)
+    Header append Vary Accept env=REDIRECT_WEBPACCEPT
+
+    # Add headers for debugging
+    Header append X-WebP-On-Demand "Routed to existing converted image" env=REDIRECT_WEBPEXISTING
+    Header append X-WebP-On-Demand "Routed to image converter" env=REDIRECT_WEBPNEW
 </IfModule>
 
 AddType image/webp .webp
