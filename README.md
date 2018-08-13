@@ -42,7 +42,7 @@ Now, choose the appropriate example file, using this table:
 | Location of converted files | Location of webp-on-demand.php | .htaccess to copy from
 | -- | -- | -- |
 | Same as source file    |  webroot  |  `.htaccess.example1a` |
-| Same as source file    |  subfolder to webroot  |  `.htaccess.example1b` (Note: not LiteSpeed compatible yet) |
+| Same as source file    |  subfolder to webroot  |  `.htaccess.example1b` |
 | In a separate folder     |  webroot  |  `.htaccess.example2a`  |
 | In a separate folder     |  subfolder to webroot  |  `.htaccess.example2b`  |
 
