@@ -8,10 +8,10 @@ WebP on demand consists of two parts.
 
 - *The redirect rules* detects whether a requested image has already been converted. If so, it redirects it to the converted image. If not, it redirects it to the *image converter*
 
-- *The image converter* converts, saves and serves the image. We are using [webp-convert-and-serve](https://github.com/rosell-dk/webp-convert-and-serve) library for this.
+- *The image converter* converts, saves and serves the image. We are using the [webp-convert-and-serve](https://github.com/rosell-dk/webp-convert-and-serve) library for this.
 
 ** New feature: LiteSpeed support **
-The redirect rules are written for Apache. They did not work on *LiteSpeed* servers (even though LiteSpeed claims compliance). A little tweaking however solved the problem. It is available in master, and will be available in the upcoming 0.3 release.
+The redirect rules are written for Apache. They did not work on *LiteSpeed* servers (even though LiteSpeed claims compliance). A little tweaking however solved the problem.
 
 This project currently only supports Apache and LiteSpeed. In time, we may add redirect rules for NGINX and/or Windows Server. If you don't want to wait for NGINX support, there are NGINX rules to get you started [here](https://github.com/S1SYPHOS/kirby-webp#nginx).
 
@@ -23,38 +23,25 @@ This project currently only supports Apache and LiteSpeed. In time, we may add r
 - Run composer: `composer install`
 
 #### 3. Get `webp-on-demand.php` up and running
-1. Copy the supplied `webp-on-demand.php.example` file to the part of your website that you want WebPOnDemand to work on (usually webroot). And remove '.example' from filename.
-- Test that the converter is working. Place an image in same folder as `webp-on-demand.php`. And then point your browser to `http://your-domain.com/your-folder/webp-on-demand.php?source=your-image.jpg&debug` in your browser. The debug parameter causes the script to return text instead of the converted image.
+1. Copy the supplied `webp-on-demand.php.example` into your website - wherever you like - removing '.example' from filename
+
+2. Unless you have placed `webp-on-demand.php` in webroot, you must alter it a bit. If for example, you have placed it in a subfolder (1 level deep), first line should be altered to:
+```
+require '../webp-on-demand/vendor/autoload.php';
+```
+
+3. Test that the converter is working. Place an image in your root and point your browser to `http://your-domain.com/your-folder/webp-on-demand.php?source=your-image.jpg&debug`.
+
+The debug parameter causes the script to return text instead of the converted image.
+You should now see a report on how the conversion went.
+
+If no converters are available, you can try to make a converter work or hook up to a cloud converter. You can learn more about available options at the github page for [webp-convert](https://github.com/rosell-dk/webp-convert)
 
 #### 4. Get the `.htaccess` file up and running
 
-##### 4.1 Choose the appropiate .htaccess example file
-There are multiple .htaccess example files to choose from, depending on your needs. So first, you must decide where you want the converted files to reside. You have two options:
+Decide what part of your website you want WebPOnDemand to work on. The rewrite rules must be placed in a .htaccess file in that directory. You get the rewrite rules from the `.htaccess.template` file in this repository. It is called ".template" to signify that you must replace some placeholders in order to get the working rules. Instructions are placed in `.htaccess.template` itself.
 
-*Same as source file*
-Puts the converted files in the same folder as the original. The converted files gets the same name as the original plus ".webp". Ie. "image.jpg" will be converted into "image.jpg.webp"
-
-*In a common folder*
-Puts the converted files into a folder dedicated for the converted files. The converted files will then be organized into the same structure as the original. If you for example set the folder to be "webp-cache", then */images/2017/fun-at-the-hotel.jpg* will be converted into */webp-cache/images/2017/fun-at-the-hotel.jpg*
-
-Now, choose the appropriate example file, using this table:
-
-| Location of converted files | Location of webp-on-demand.php | .htaccess to copy from
-| -- | -- | -- |
-| Same as source file    |  webroot  |  `.htaccess.example1a` |
-| Same as source file    |  subfolder to webroot  |  `.htaccess.example1b` |
-| In a separate folder     |  webroot  |  `.htaccess.example2a`  |
-| In a separate folder     |  subfolder to webroot  |  `.htaccess.example2b`  |
-
-##### 4.2 Copy content from the .htaccess example file
-- Create a .htaccess file in the *same folder* as webp-on-demand.php
-- Copy the content of the appropiate example file
-
-##### 4.2 For b-versions, substitute folder name
-If you have choosen one of the "b"-versions, you will have to enter the path in the .htaccess (do a search/replace for "your-folder"). Don't forget to read the comments in the .htaccess.
-
-##### 4.3 Test the routing
-Test that the `.htaccess` is routing your image to the image converter by pointing your browser to `http://your-domain.com/your-folder/your-image.jpg&debug`. If you should a textual report, the redirect is working. If you see an image, it is not working. (the `.htaccess` rules are set up to forward the querystring, so - if things are working correctly - webp-on-demand.php will be called with "?debug", and therefor produce a textual report)
+To test that the `.htaccess` is routing your image to the image converter, point your browser to `http://your-domain.com/your-folder/your-image.jpg&debug`. If you see a textual report, the redirect is working. If you see an image, it is not working. (the `.htaccess` rules are set up to forward the querystring, so - if things are working correctly - webp-on-demand.php will be called with "?debug", and therefore produce a textual report)
 
 In order to test that a image is not being reconverted every time it is requested, check the Response headers of the image. There should be a "X-WebP-Express" header. It should say Routed to image converter" the first time, but "Routed to existing converted image" on subsequent requests.
 To view response headers in Google Chrome do the following:
@@ -82,6 +69,8 @@ By appending `?debug` to your image url, you get a report (text output) instead 
 
 By appending `?reconvert` to your image url, you bypass the automatic routing to existing source files.
 
+As described in the install section, you can inspect 'X-WebP-On-Demand' header to detect which rewrite rules are triggered, if any.
+
 Is something not working?
 - Perhaps there are other rules in your `.htaccess` that interfere with the rules?
 - Perhaps your site is on Apache, but it has been configured to use *Nginx* to serve image files. You then need to reconfigure your server setup. Or create Nginx rules. There are some [here](https://github.com/S1SYPHOS/kirby-webp#nginx).
@@ -91,10 +80,11 @@ Is something not working?
 
 You add options to `webp-on-demand.php` directly in the `.htaccess`. You can however also add them after an image url.
 
-| option                       | Description                                          |
-| ---------------------------- | --------------------------------------------- |
-| *source*                       | Path to source file.<br><br>Path is relative to the `webp-on-demand.php` script. If it starts with "/", it is considered an absolute path.|
-| *destination-root* (optional)  | Default is ".", meaning that the destination folder will be the same as the source folder. <br><br>Path is relative to the `webp-on-demand.php` script. If it starts with "/", it is considered an absolute path.|
+| option                         | Description                                          |
+| ------------------------------ | --------------------------------------------- |
+| *base-path*                    | Sets the base path used for "source" and "destination-root" options. Must be relative to document root, or absolute (not recommended). When used in .htaccess, set it to the folder containing the .htaccess file, relative to document root. If for example document root is /var/www/example.com/ and you have a subdirectory "wordpress", which you want WebPOnDemand to work on, you should place .htaccess rules in the "wordpress" directory, and your "base-path" will be "wordpress". If not set, it defaults to be the path of webp-on-demand.php |
+| *source*                       | Path to source file, relative to 'base-path' option. The final path is calculated like this: [base-path] + [path to source file] + ".webp". Absolute path is depreciated, but supported for backwards compatability.|
+| *destination-root* (optional)  | The path of where you want the converted files to reside, relative to the 'base-path' option. If you want converted files to be put in the same folder as the originals, you can set destination-root to ".", or leave it blank. If you on the other hand want all converted files to reside in their own folder, set the destination-root to point to that folder. The converted files will be stored in a hierarchy that matches the source files. With destination-root set to "webp-cache", the source file "images/2017/cool.jpg" will be stored at "webp-cache/images/2017/cool.jpg.webp". Double-dots in paths are allowed, ie "../webp-cache". The final destination is calculated like this: [base-path] + [destination-root] + [path to source file] + ".webp". Default is ".". You can also supply an absolute path|
 | *quality* (optional)           | The quality of the generated WebP image, "auto" or 0-100. Defaults to "auto". See [WebPConvert](https://github.com/rosell-dk/webp-convert#methods) docs |
 | *max-quality* (optional)        | The maximum quality. Only relevant when quality is set to "auto" |
 | *default-quality* (optional)    | Fallback value for quality, if it isn't possible to detect quality of jpeg. Only relevant when quality is set to "auto" |
@@ -145,7 +135,7 @@ The .htaccess takes care of setting the "Vary" HTTP header to "Accept" when rout
 
 ### The Apache configuration files in details
 
-Lets make a walk-through of .htaccess-example1a. The other files are very similar, so walking through one of them should suffice.
+Lets make a walk-through of .htaccess-template.
 
 The rules read:
 ```
@@ -156,15 +146,15 @@ The rules read:
     # Redirect to existing converted image (under appropriate circumstances)
     RewriteCond %{HTTP_ACCEPT} image/webp
     RewriteCond %{QUERY_STRING} !((^reconvert.*)|(^debug.*))
-    RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp -f
-    RewriteRule ^\/?(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=WEBPACCEPT:1,E=WEBPEXISTING:1,QSD]
+    RewriteCond %{DOCUMENT_ROOT}/your-base-path/your-destination-path/$1.$2.webp -f
+    RewriteRule ^\/?(.*)\.(jpe?g|png)$ /your-base-path/your-destination-path/$1.$2.webp [NC,T=image/webp,E=WEBPACCEPT:1,E=WEBPEXISTING:1,QSD]
 
     # Redirect to converter (under appropriate circumstances)
     RewriteCond %{HTTP_ACCEPT} image/webp
     RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
-    RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f
-    RewriteCond %{QUERY_STRING} (.*)    # Always true. Enables us to grab the query string in the following rule
-    RewriteRule ^\/?(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=.&quality=80&fail=original&critical-fail=report&%1 [NC,E=WEBPACCEPT:1,E=WEBPNEW:1]
+    RewriteCond %{DOCUMENT_ROOT}/your-base-path/your-destination-path/$1.$2.webp !-f
+    RewriteCond %{QUERY_STRING} (.*)
+    RewriteRule ^\/?(.*)\.(jpe?g|png)$ your-webp-on-demand-path/webp-on-demand.php?base-path=your-base-path&destination-root=your-destination-path&source=$1.$2&quality=80&fail=original&critical-fail=report&%1 [NC,E=WEBPACCEPT:1,E=WEBPNEW:1]
 
 </IfModule>
 
@@ -199,8 +189,8 @@ First block reads:
 # Redirect to existing converted image (under appropriate circumstances)
 RewriteCond %{HTTP_ACCEPT} image/webp
 RewriteCond %{QUERY_STRING} !((^reconvert.*)|(^debug.*))
-RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp -f
-RewriteRule ^\/?(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=WEBPACCEPT:1,E=WEBPEXISTING:1,QSD]
+RewriteCond %{DOCUMENT_ROOT}/your-base-path/your-destination-path/$1.$2.webp -f
+RewriteRule ^\/?(.*)\.(jpe?g|png)$ /your-base-path/your-destination-path/$1.$2.webp [NC,T=image/webp,E=WEBPACCEPT:1,E=WEBPEXISTING:1,QSD]
 ```
 
 *Lets take it line by line:*
@@ -214,8 +204,8 @@ This makes sure that the query string does not begin with "reconvert" or "debug"
 `RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp -f`
 This makes sure there is an existing converted image. The $1 and $2 refers to matches of the following rule. You may think it is weird that we can reference matches in a rule not run yet, in a condition to that very rule. I agree - mod_rewrite is a complex beast.
 
-`RewriteRule ^\/?(.*)\.(jpe?g|png)$ $1.$2.webp [NC,T=image/webp,E=WEBPACCEPT:1,E=WEBPEXISTING:1,QSD]`
-Rewrites any request that ends with ".jpg", ".jpeg" or ".png" (case insensitive). The first parentheses makes grabs the file path, which can then be referenced with $1. The second parentheses grabs the file extension into $2. These referenced are used in the preceding condition as well as in the rule itself. The effect of the rewrite is that the target is set to the same as source, but with ".webp" appended to it. Also, MIME type of the response is set to "image/webp" (not necessary, though). The first E flag part sets the environment variable "WEBPACCEPT" to 1. This is used further down in the .htaccess to conditionally append a Vary header. So setting this variable means that the Vary header will be appended if the rule is triggered. The second E sets the environment variable "WEBPEXISTING" to 1. This marks that the request was routed to an existing image and is used later to send a custom header X-WebP-On-Demand="Routed to existing converted image" (practical for debugging). The NC flag makes the match case insensitive. The QSD flag tells Apache to strip the query string. The "\/?" is added to the beginning in order to support LiteSpeed web servers.
+`RewriteRule ^\/?(.*)\.(jpe?g|png)$ /your-base-path/your-destination-path/$1.$2.webp [NC,T=image/webp,E=WEBPACCEPT:1,E=WEBPEXISTING:1,QSD]`
+Rewrites any request that ends with ".jpg", ".jpeg" or ".png" (case insensitive). The first parentheses makes grabs the file path, which can then be referenced with $1. The second parentheses grabs the file extension into $2. These referenced are used in the preceding condition as well as in the rule itself. The effect of the rewrite is that the target is set to the same as source, but with ".webp" appended to it. Also, MIME type of the response is set to "image/webp" (not necessary, though). The first E flag part sets the environment variable "WEBPACCEPT" to 1. This is used further down in the .htaccess to conditionally append a Vary header. So setting this variable means that the Vary header will be appended if the rule is triggered. The second E sets the environment variable "WEBPEXISTING" to 1. This marks that the request was routed to an existing image and is used later to send a custom header X-WebP-On-Demand="Routed to existing converted image" (practical for debugging). The NC flag makes the match case insensitive. The QSD flag tells Apache to strip the query string. The "\/?" is added to the beginning in order to support LiteSpeed web servers. "your-base-path" and "your-destination-path" must be altered to match the locations of your setup, as instructed in top of `.htaccess.template`
 
 #### Redirecting to image converter
 Second block redirects to *the image converter* (under appropiate circumstances)
@@ -224,9 +214,9 @@ Second block redirects to *the image converter* (under appropiate circumstances)
 # Redirect to converter (under appropriate circumstances)
 RewriteCond %{HTTP_ACCEPT} image/webp
 RewriteCond %{QUERY_STRING} (^reconvert.*)|(^debug.*) [OR]
-RewriteCond %{DOCUMENT_ROOT}/$1.$2.webp !-f
-RewriteCond %{QUERY_STRING} (.*)    # Always true. Enables us to grab the query string in the following rule
-RewriteRule ^\/?(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=.&quality=80&fail=original&critical-fail=report&%1 [NC,E=WEBPACCEPT:1,E=WEBPNEW:1]
+RewriteCond %{DOCUMENT_ROOT}/your-base-path/your-destination-path/$1.$2.webp !-f
+RewriteCond %{QUERY_STRING} (.*)
+RewriteRule ^\/?(.*)\.(jpe?g|png)$ your-webp-on-demand-path/webp-on-demand.php?base-path=your-base-path&destination-root=your-destination-path&source=$1.$2&quality=80&fail=original&critical-fail=report&%1 [NC,E=WEBPACCEPT:1,E=WEBPNEW:1]
 ```
 
 *Lets take it line by line*:
@@ -242,9 +232,9 @@ Make sure there aren't an existing image (OR above condition)
 `RewriteCond %{QUERY_STRING} (.*)`
 This is always true. The condition is there to enable us to pass on the querystring from image request to the converter in the next rule, where it will be accessible as "%1"
 
-`RewriteRule ^\/?(.*)\.(jpe?g|png)$ webp-on-demand.php?source=$1.$2&destination-root=.&quality=80&fail=original&critical-fail=report&%1 [NC,E=WEBPACCEPT:1,E=WEBPNEW:1]`
-
-This line rewrites any request that ends with ".jpg", ".jpeg" or ".png" (case insensitive) to the image converter. You can remove "|png" from the line, if you do not want to convert png files. We have covered the NC flag and the E=WEBPACCEPT in the first block. Notice that we have no "T=image/webp" in this rewrite. It was originally there, but I removed it in order for it to work in LiteSpeed. webp-on-demand.php sets a Content Type header, so it was not needed in the first place. Well, actually, webp-on-demand.php may set content type to text/html (when returning error report), or image/gif, when returning error report as image - so setting it to something different here, is asking for trouble. The "\/?" in the beginning was also added for LiteSpeed support. %1 prints the query string fetched in the preceding condition. This enables overiding the converter options set here. For example appending "&debug&preferred-converters=gd" to an url that points to an image can be used to test the gd converter. Or "&reconvert&quality=100" can be appended in order to reconvert the image using extreme quality. The "E=WEBPNEW:1" flag sets the environment variable "WEBPNEW" to 1. This marks that the request was routed to an existing image and is used later to send a custom header X-WebP-On-Demand="Routed to image converter" (practical for debugging).
+`RewriteRule ^\/?(.*)\.(jpe?g|png)$ your-webp-on-demand-path/webp-on-demand.php?base-path=your-base-path&destination-root=your-destination-path&source=$1.$2&quality=80&fail=original&critical-fail=report&%1 [NC,E=WEBPACCEPT:1,E=WEBPNEW:1]
+`
+This line rewrites any request that ends with ".jpg", ".jpeg" or ".png" (case insensitive) to the image converter. You can remove "|png" from the line, if you do not want to convert png files. We have covered the NC flag and the E=WEBPACCEPT in the first block. Notice that we have no "T=image/webp" in this rewrite. It was originally there, but I removed it in order for it to work in LiteSpeed. webp-on-demand.php sets a Content Type header, so it was not needed in the first place. Well, actually, webp-on-demand.php may set content type to text/html (when returning error report), or image/gif, when returning error report as image - so setting it to something different here, is asking for trouble. The "\/?" in the beginning was also added for LiteSpeed support. %1 prints the query string fetched in the preceding condition. This enables overiding the converter options set here. For example appending "&debug&preferred-converters=gd" to an url that points to an image can be used to test the gd converter. Or "&reconvert&quality=100" can be appended in order to reconvert the image using extreme quality. The "E=WEBPNEW:1" flag sets the environment variable "WEBPNEW" to 1. This marks that the request was routed to an existing image and is used later to send a custom header X-WebP-On-Demand="Routed to image converter" (practical for debugging). "your-webp-on-demand-path", "your-base-path" and "your-destination-path" must be altered to match the locations of your setup, as instructed in top of `.htaccess.template`
 
 #### Headers / dealing with CDN
 
@@ -288,11 +278,6 @@ Pros and cons:
 - *WebP on demand* works on images referenced in CSS (*WebP realizer* does not)\
 - *WebP on demand* requires no change in HTML (*WebP realizer* does)\
 - *WebP realizer* works better with CDN's - CDN does not need to cache different versions of the same URL
-
-## Ideas
-
-* Only serve webp when filesize is smaller than original (ie. the script can generate an (extra) file image.jpg.webp.too-big.txt when filesize is larger - the htaccess can test for its existence)
-* Is there a trick to detect that the original has been updated?
 
 ## Related
 * [My original post presenting the solution](https://www.bitwise-it.dk/blog/webp-on-demand)

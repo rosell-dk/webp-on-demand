@@ -1,5 +1,10 @@
 <?php
 
+// To start with, lets display any errors.
+// You can later comment these out
+error_reporting(E_ALL);
+ini_set("display_errors", 1);
+
 require 'webp-on-demand/vendor/autoload.php';
 
 use WebPOnDemand\WebPOnDemand;
