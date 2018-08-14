@@ -13,7 +13,7 @@
 
 # Finally, you must decide where you want webp-on-demand.php to reside.
 # 1. Copy the webp-on-demand.php.example file there (rename it to webp-on-demand.php)
-# 2. Do a search/replace in this document, replacing [[your-webp-on-demand-path]] with the path to webp-on-demand.php
+# 2. Do a search/replace in this document, replacing [[your-webp-on-demand-path]] with the url path to webp-on-demand.php
 #    (relative to the path you have placed the .htaccess in). If you ie have webp-on-demand.php placed in same folder as
 #    this .htaccess, then replace "[[your-webp-on-demand-path]]" with "."
 
