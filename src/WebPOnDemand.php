@@ -208,7 +208,7 @@ class WebPOnDemand
             $sourceRelToBasePath = $sourcePath;
             $sourcePathAbs = $basePath . '/' . $sourcePath;
         }
-        $source = self::removeDoubleSlash($sourcePath);
+        $source = self::removeDoubleSlash($sourcePathAbs);
 
         // Calculate $destination from destination-root and $basePath
         if (!isset($_GET['destination-root'])) {
