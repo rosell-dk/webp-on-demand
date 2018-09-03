@@ -1,4 +1,14 @@
 .php_cs.cache
+.htaccess
+/test.jpg
+/test.jpg.webp
+/webp-images
+/webp-on-demand-options.inc.example
+/webp-on-demand-options.inc
+/webp-on-demand.php
+/webp-on-demand-composer.php
+/webp-on-demand-src.php
+/webp-on-demand.php
 composer.lock
 composer.phar
 /images
