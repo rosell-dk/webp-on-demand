@@ -114,7 +114,7 @@ That condition will always be met. The side effect is that it stores the match (
     # Redirect images to webp-on-demand.php (if browser supports webp)
     RewriteCond %{HTTP_ACCEPT} image/webp
     RewriteCond %{QUERY_STRING} (.*)
-    RewriteRule ^(.*)\.(jpe?g|png)$ webp-on-demand.php?source=%{SCRIPT_FILENAME}&path=$1.$2&%1 [NC,L]
+    RewriteRule ^(.*)\.(jpe?g|png)$ webp-on-demand.php?source=%{SCRIPT_FILENAME}&%1 [NC,L]
 </IfModule>
 
 AddType image/webp .webp
@@ -122,10 +122,9 @@ AddType image/webp .webp
 Of course, in order to *do* something with that querystring, you will need to edit *webp-on-demand-options.inc*.
 You could for example add this in the bottom of that file to achieve the mentioned "debug" and "reconvert" features:
 ```php
-if (isset($_GET['debug'])) {
-  $options['debug'] = true;
-}
-if (isset($_GET['reconvert'])) {
-  $options['reconvert'] = true;
-}
+$options = [
+    'show-report' => isset($_GET['debug']),
+    'reconvert' => isset($_GET['reconvert']),
+    'original' => isset($_GET['original']),
+]
 ```
