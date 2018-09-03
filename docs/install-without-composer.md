@@ -1,5 +1,3 @@
-This document isn't ready yet.
-
 # Installing WebP On Demand without composer
 
 A setup consists of these parts:
@@ -58,4 +56,4 @@ It should work now, but to be absolute sure:
 
 ### 5. Customize
 
-You can return to the main README for further instructions
+You can return to the main [README](https://github.com/rosell-dk/webp-on-demand) for further instructions. Also make sure to browse [docs/tweaks.md](https://github.com/rosell-dk/webp-on-demand/blob/master/docs/tweaks.md)
