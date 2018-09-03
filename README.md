@@ -29,6 +29,8 @@ A setup consists of these parts:
 ### 1. Require this library with composer
 `composer require rosell-dk/webp-on-demand`
 
+***Note:*** As 1.0.0-beta is a beta release, the above may get you the 0.3.2 version. The following instructions all apply to the 1.0.0-beta. To get it, you can edit your *composer.json*, and change the require to "rosell-dk/webp-on-demand": "^1.0.0-beta"
+
 ### 2. Add redirect rules
 Place the following rewrite rules in a .htaccess file in the directory you want WebPOnDemand to do its magic:
 
