@@ -42,7 +42,9 @@ If you have placed *webp-on-demand.php* in a subfolder, you will need to change 
 
 ### 4. Validate that it works
 
-Browse to an JPEG image. Instead of an image, you should see a conversion report. Hopefully, you get a success. Otherwise, you need to hook up to a cloud converter or try to meet the requirements for cwebp, gd or imagick. You can learn more about available options at the github page for [webp-convert](https://github.com/rosell-dk/webp-convert)
+Browse to an JPEG image. Instead of an image, you should see a conversion report. Hopefully, you get a success. Otherwise, you need to hook up to a cloud converter or try to meet the requirements for *cwebp*, *gd* or *imagick*. You can learn more about available options at the github page for [webp-convert](https://github.com/rosell-dk/webp-convert).
+
+Notice that webp-convert comes with some precompiled cwebp binaries. The converter also looks in common folders for a cwebp binary, so it may work without the precompiled bins. If not, you can try to download the converters/bin folder from webp-convert. 
 
 Once you get a successful conversion, you can uncomment the "show-report" option in *webp-on-demand-options.inc*
 
