@@ -29,8 +29,6 @@ A setup consists of these parts:
 ### 1. Require this library with composer
 `composer require rosell-dk/webp-on-demand`
 
-***Note:*** As the current version (1.0.0-beta) is a beta release, the above may get you the 0.3.2 version. The following instructions all apply to the 1.0.0-beta. To get it, you can edit your *composer.json*, and change the require to "rosell-dk/webp-on-demand": "^1.0.0-beta"
-
 ### 2. Create the script
 
 Create a file *webp-on-demand.php*, and place it in webroot, or where-ever you like in you web-application.
