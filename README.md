@@ -4,7 +4,7 @@ This is a solution for automatically serving WebP images instead of jpeg/pngs fo
 
 Once set up, it will automatically convert images, no matter how they are referenced. It for example also works on images referenced in CSS. As the solution does not require any change in the HTML, it can easily be integrated into any website / framework (A Wordpress adaptation was recently published on [wordpress.org](https://wordpress.org/plugins/webp-express/) - its also on [github](https://github.com/rosell-dk/webp-express))
 
-This readme describes how to use *webp-on-demand* in an existing composer project. We have however also made it simple to use webp-on-demand without composer. If you want to do that, read [install-without-composer.md](https://github.com/rosell-dk/webp-on-demand/blob/master/docs/install-without-composer.md)
+This readme describes how to use *webp-on-demand* in an existing composer project. We have however also made it simple to use webp-on-demand without composer. If you want to do that, read [docs/install-without-composer.md](https://github.com/rosell-dk/webp-on-demand/blob/master/docs/install-without-composer.md)
 
 ## Overview
 
@@ -94,7 +94,7 @@ Basic customizing is done by setting options in the `$options` array:
 - Check out [webp-convert](https://github.com/rosell-dk/webp-convert/) for conversion options.
 - Check out [webp-convert-and-serve](https://github.com/rosell-dk/webp-convert-and-serve/) for options on how to respond on failures.
 
-Other tweaking is described in docs/tweaks.md:
+Other tweaking is described in *docs/tweaks.md*:
 - [Store converted images in separate folder](https://github.com/rosell-dk/webp-on-demand/blob/master/docs/tweaks.md#store-converted-images-in-separate-folder)
 - [CDN](https://github.com/rosell-dk/webp-on-demand/blob/master/docs/tweaks.md#cdn)
 - [Make .htaccess route directly to existing images](https://github.com/rosell-dk/webp-on-demand/blob/master/docs/tweaks.md#make-htaccess-route-directly-to-existing-images)
