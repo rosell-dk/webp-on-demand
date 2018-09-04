@@ -14,19 +14,19 @@ The options argument is a named array. *WebPOnDemand* has just a few available o
 
 
 ### *show-report*
-Produce a report rather than serve an image.
+Produce a report rather than serve an image.  
 Default value: *false*
 
 ### *reconvert*
-Force a conversion, discarding existing converted image (if any)
+Force a conversion, discarding existing converted image (if any).  
 Default value: *false*
 
 ### *original*
-Forces serving original image
+Forces serving original image.  
 Default value: *false*
 
 ### *add-x-webp-on-demand-headers*
-When set to *true*, a *X-WebP-On-Demand* header will be added describing how things went.
+When set to *true*, a *X-WebP-On-Demand* header will be added describing how things went.  
 Default value: *true*
 
 Depending on how things goes, the header will be set to one of the following:
@@ -39,9 +39,9 @@ Depending on how things goes, the header will be set to one of the following:
 - Converting image (handed over to WebPConvertAndServe)
 
 ### *add-vary-header*
-Add a "Vary: Accept" header when an image is served. Experimental.
+Add a "Vary: Accept" header when an image is served. Experimental.  
 Default value: *false*
 
 ### *require-for-conversion*
-Makes the library 'require in' a file just before calling WebPConvertAndServe. This is not needed for composer projects, as composer takes care of autoloading classes when needed. The option is here for making it possible to have a simple, yet flexible setup without composer. The file that is required in could be a one-file version of all webp-convert-and-serve, including its dependies (webp-convert).
+Makes the library 'require in' a file just before calling WebPConvertAndServe. This is not needed for composer projects, as composer takes care of autoloading classes when needed. You don't have to worry about the option when following the [docs/install-without-composer.md](https://github.com/rosell-dk/webp-on-demand/blob/master/docs/install-without-composer.md) guide (there, the option is set to "webp-convert-and-serve.inc" behind the scenes). The option is here for making it possible to have a simple, yet flexible setup without composer. The file that is required in could be a one-file version of all webp-convert-and-serve, including its dependies (webp-convert).  
 Default value: *null*
