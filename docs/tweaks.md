@@ -126,5 +126,5 @@ $options = [
     'show-report' => isset($_GET['debug']),
     'reconvert' => isset($_GET['reconvert']),
     'original' => isset($_GET['original']),
-]
+];
 ```
