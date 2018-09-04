@@ -31,30 +31,14 @@ A setup consists of these parts:
 
 ***Note:*** As the current version (1.0.0-beta) is a beta release, the above may get you the 0.3.2 version. The following instructions all apply to the 1.0.0-beta. To get it, you can edit your *composer.json*, and change the require to "rosell-dk/webp-on-demand": "^1.0.0-beta"
 
-### 2. Add redirect rules
-Place the following rewrite rules in a .htaccess file in the directory you want WebPOnDemand to do its magic:
-
-```
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-
-    # Redirect images to webp-on-demand.php (if browser supports webp)
-    RewriteCond %{HTTP_ACCEPT} image/webp
-    RewriteRule ^(.*)\.(jpe?g|png)$ webp-on-demand.php?source=%{SCRIPT_FILENAME} [NC,L]
-</IfModule>
-
-AddType image/webp .webp
-```
-If you have placed *webp-on-demand.php* in a subfolder, you will need to change the rewrite rule accordingly.
-
-
-### 3. Create the script
+### 2. Create the script
 
 Create a file *webp-on-demand.php*, and place it in webroot, or where-ever you like in you web-application.
 
 Here is a minimal example to get started with:
 
 ```php
+<?php
 require 'vendor/autoload.php';
 
 use WebPOnDemand\WebPOnDemand;
@@ -71,6 +55,23 @@ $options = [
 ];
 WebPOnDemand::serve($source, $destination, $options);
 ```
+
+### 3. Add redirect rules
+Place the following rewrite rules in a *.htaccess* file in the directory you want webp-on-demand to do its magic:
+
+```
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Redirect images to webp-on-demand.php (if browser supports webp)
+    RewriteCond %{HTTP_ACCEPT} image/webp
+    RewriteRule ^(.*)\.(jpe?g|png)$ webp-on-demand.php?source=%{SCRIPT_FILENAME} [NC,L]
+</IfModule>
+
+AddType image/webp .webp
+```
+If you have placed *webp-on-demand.php* in a subfolder, you will need to change the rewrite rule accordingly.
+
 
 ### 4. Validate that it works
 
