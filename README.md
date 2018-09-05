@@ -19,7 +19,7 @@ A setup consists of these parts:
 
 ## Requirements
 
-* *Apache* or *LiteSpeed* web server
+* *Apache* or *LiteSpeed* web server. Can be made to work with *NGINX* as well. Documentation is on the roadmap.
 * PHP >= 5.6  (we are only testing down to 5.6. It should however work in 5.5 as well)
 * That one of the *webp-convert* converters are working (these have different requirements)
 
