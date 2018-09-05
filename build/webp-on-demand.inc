@@ -1,19 +1,16 @@
-<?php 
+<?php
 
 
 namespace WebPOnDemand;
 
-use WebPOnDemand\PathHelper;
-
 class WebPOnDemand
 {
-
     public static $defaultOptions = [
         'show-report' => false,
         'reconvert' => false,
         'original' => false,
         'add-x-webp-on-demand-headers' => true,
-        'add-vary-header' => false,
+        'add-vary-header' => true,
     ];
 
     private static function serveOriginal($source)
@@ -30,7 +27,7 @@ class WebPOnDemand
                 header('Content-type: image/png');
                 break;
         }
-        if (@readfile($source) === FALSE) {
+        if (@readfile($source) === false) {
             header('X-WebP-On-Demand-Error: Could not read file');
         }
     }
@@ -52,7 +49,6 @@ class WebPOnDemand
 
     public static function serve($source, $destination, $options)
     {
-
         $options = array_merge(self::$defaultOptions, $options);
 
         if (empty($source)) {
@@ -63,7 +59,6 @@ class WebPOnDemand
         }
 
         if ($options['show-report']) {
-
             // Load WebPConvertAndServe (only when needed)
             if (isset($options['require-for-conversion'])) {
                 require($options['require-for-conversion']);
@@ -80,11 +75,12 @@ class WebPOnDemand
             self::serveOriginal($source);
         }
         if (file_exists($destination) && (!$options['reconvert'])) {
-
             $timestampSource = filemtime($source);
             $timestampDestination = filemtime($destination);
 
-            if (($timestampSource === FALSE) && ($timestampDestination !== FALSE) && ($timestampSource > $timestampDestination)) {
+            if (($timestampSource === false) &&
+                ($timestampDestination !== false) &&
+                ($timestampSource > $timestampDestination)) {
                 // It must be reconverted...
                 // will be done in a subsequent block...
             } else {
@@ -92,20 +88,23 @@ class WebPOnDemand
                 $filesizeSource = filesize($source);
 
                 // Serve original image, if the converted image is larger
-                if (($filesizeSource !== FALSE) && ($filesizeDestination !== FALSE) && ($filesizeDestination > $filesizeSource)) {
-                    self::addWebPOnDemandHeader('Serving original image - because it is smaller than the converted!', $options);
+                if (($filesizeSource !== false) &&
+                    ($filesizeDestination !== false) &&
+                    ($filesizeDestination > $filesizeSource)) {
+                    self::addWebPOnDemandHeader(
+                        'Serving original image - because it is smaller than the converted!',
+                        $options
+                    );
                     self::addVaryHeader($options);
                     self::serveOriginal($source);
-
                 } else {
-
                     // Serve existing converted image
                     //echo $destination;
                     header('Content-type: image/webp');
                     self::addWebPOnDemandHeader('Serving existing converted image', $options);
                     self::addVaryHeader($options);
 
-                    if (@readfile($destination) === FALSE) {
+                    if (@readfile($destination) === false) {
                         header('X-WebP-On-Demand-Error: Could not read file');
                     }
                 }
@@ -132,20 +131,5 @@ class WebPOnDemand
 
 
         \WebPConvertAndServe\WebPConvertAndServe::convertAndServe($source, $destination, $options);
-
     }
 }
-
-
-error_reporting(E_ALL);
-ini_set("display_errors", 1);
-
-use \WebPOnDemand\WebPOnDemand;
-
-$source = $_GET['source'];
-
-require 'webp-on-demand-options.inc';
-
-$options['require-for-conversion'] = 'webp-convert-and-serve.inc';
-WebPOnDemand::serve($source, $destination, $options);
-

@@ -43,5 +43,5 @@ Add a "Vary: Accept" header when an image is served. Experimental.
 Default value: *false*
 
 ### *require-for-conversion*
-Makes the library 'require in' a file just before calling WebPConvertAndServe. This is not needed for composer projects, as composer takes care of autoloading classes when needed. You don't have to worry about the option when following the [docs/install-without-composer.md](https://github.com/rosell-dk/webp-on-demand/blob/master/docs/install-without-composer.md) guide (there, the option is set to "webp-convert-and-serve.inc" behind the scenes). The option is here for making it possible to have a simple, yet flexible setup without composer. The file that is required in could be a one-file version of all webp-convert-and-serve, including its dependies (webp-convert).  
+If set, makes the library 'require in' a file just before calling WebPConvertAndServe. This is not needed for composer projects, as composer takes care of autoloading classes when needed. 
 Default value: *null*
