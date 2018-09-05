@@ -2,8 +2,6 @@
 
 namespace WebPOnDemand;
 
-use WebPOnDemand\PathHelper;
-
 class WebPOnDemand
 {
     public static $defaultOptions = [
@@ -46,7 +44,6 @@ class WebPOnDemand
             header('Vary: Accept');
         }
     }
-
 
     public static function serve($source, $destination, $options)
     {
@@ -122,14 +119,13 @@ class WebPOnDemand
 
         self::addWebPOnDemandHeader('Converting image (handed over to WebPConvertAndServe)', $options);
 
-        // We do not add "Vary Accept" header here, because WebPConvertAndServe will do that (if successful)
-
+        // We do not add "Vary Accept" header here, because WebPConvertAndServe will do that
+        // (and we do not unset "add-vary-header", but pass it on)
         unset($options['show-report']);
         unset($options['reconvert']);
         unset($options['original']);
         unset($options['add-x-webp-on-demand-headers']);
         unset($options['require-for-conversion']);
-
 
         \WebPConvertAndServe\WebPConvertAndServe::convertAndServe($source, $destination, $options);
     }
