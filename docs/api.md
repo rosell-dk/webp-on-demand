@@ -30,18 +30,18 @@ When set to *true*, a *X-WebP-On-Demand* header will be added describing how thi
 Default value: *true*
 
 Depending on how things goes, the header will be set to one of the following:
-- Failed (Missing source argument)
-- Failed (Missing destination argument)
-- Reporting...
-- Serving original image (was explicitly told to)
-- Serving original image - because it is smaller than the converted!
-- Serving existing converted image
-- Converting image (handed over to WebPConvertAndServe)
+- "Failed (Missing source argument)"
+- "Failed (Missing destination argument)"
+- "Reporting..."
+- "Serving original image (was explicitly told to)"
+- "Serving original image - because it is smaller than the converted!"
+- "Serving existing converted image"
+- "Converting image (handed over to WebPConvertAndServe)"
 
 ### *add-vary-header*
 Add a "Vary: Accept" header when an image is served. Experimental.  
-Default value: *false*
+Default value: *true*
 
 ### *require-for-conversion*
-If set, makes the library 'require in' a file just before calling WebPConvertAndServe. This is not needed for composer projects, as composer takes care of autoloading classes when needed. 
+If set, makes the library 'require in' a file just before calling WebPConvertAndServe. This is not needed for composer projects, as composer takes care of autoloading classes when needed.
 Default value: *null*
