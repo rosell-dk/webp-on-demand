@@ -1,5 +1,7 @@
 # WebP on demand
 
+# This library is now part of [WebP Convert](https://github.com/rosell-dk/webp-convert/) and thus obsolete!
+
 This is a solution for automatically serving WebP images instead of jpeg/pngs for browsers that supports WebP (Google Chrome, that is).
 
 Once set up, it will automatically convert images, no matter how they are referenced. It for example also works on images referenced in CSS. As the solution does not require any change in the HTML, it can easily be integrated into any website / framework (A Wordpress adaptation was recently published on [wordpress.org](https://wordpress.org/plugins/webp-express/) - its also on [github](https://github.com/rosell-dk/webp-express))
